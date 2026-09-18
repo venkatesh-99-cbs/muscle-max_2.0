@@ -3,7 +3,7 @@ import api from "./api";
 export const getCart = () => api.get("/cart/");
 
 export const addToCart = (productId, quantity = 1) =>
-  api.post("/cart/items/", { product: productId, quantity });
+  api.post("/cart/items/", { product_id: productId, quantity });
 
 export const updateCartItem = (itemId, quantity) =>
   api.patch(`/cart/items/${itemId}/`, { quantity });

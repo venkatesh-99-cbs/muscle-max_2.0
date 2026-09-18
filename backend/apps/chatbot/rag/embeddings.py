@@ -1,29 +1,43 @@
 """
-Wraps the embedding model behind one function so nothing else in this
-app touches the model library directly.
+Embeddings using Ollama nomic-embed-text model.
 
-Uses a local sentence-transformers model (free, no API key needed) —
-OpenRouter is a chat-completion router only and does not serve
-embeddings, so this is intentionally a separate, local dependency from
-llm_client.py.
+Local embeddings — no API key needed, runs via Ollama.
+Uses your nomic-embed-text model running in Ollama.
 """
-from functools import lru_cache
-
+import requests
 from django.conf import settings
 
-EMBEDDING_DIMENSIONS = 384  # must match the model below (all-MiniLM-L6-v2)
+# nomic-embed-text outputs 768-dim vectors (fixed)
+EMBEDDING_DIMENSIONS = 768
 
-
-@lru_cache(maxsize=1)
-def _model():
-    from sentence_transformers import SentenceTransformer
-
-    return SentenceTransformer(settings.EMBEDDING_MODEL)
+OLLAMA_HOST = getattr(settings, "OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_EMBED_MODEL = getattr(settings, "OLLAMA_EMBED_MODEL", "nomic-embed-text")
 
 
 def embed_text(text: str) -> list[float]:
-    return _model().encode(text, normalize_embeddings=True).tolist()
+    """Embed a single text string using Ollama."""
+    return embed_texts([text])[0]
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    return _model().encode(texts, normalize_embeddings=True).tolist()
+    """Embed multiple texts using Ollama nomic-embed-text."""
+    embeddings = []
+
+    for text in texts:
+        try:
+            response = requests.post(
+                f"{OLLAMA_HOST}/api/embeddings",
+                json={"model": OLLAMA_EMBED_MODEL, "prompt": text},
+                timeout=120,
+            )
+            response.raise_for_status()
+            data = response.json()
+            embeddings.append(data["embedding"])
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to embed text with {OLLAMA_EMBED_MODEL}: {e}\n"
+                f"Make sure Ollama is running: ollama serve\n"
+                f"And model is pulled: ollama pull {OLLAMA_EMBED_MODEL}"
+            )
+
+    return embeddings

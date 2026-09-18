@@ -1,107 +1,75 @@
 """
-OpenRouter chat-completion client with automatic model fallback.
+RAG-based chatbot using Ollama local models.
 
-Tries OPENROUTER_PRIMARY_MODEL first, then each model in
-OPENROUTER_FALLBACK_MODELS (in order), then OPENROUTER_FREE_FALLBACK_MODEL
-as a last resort — moving to the next candidate whenever a model is
-rate-limited, out of quota, unavailable, or errors out.
+Chat model: qwen2.5:3b (your model)
+Embedding model: nomic-embed-text (your model)
 
-Only this module talks to OpenRouter directly; generator.py calls
-chat_with_fallback() and never touches the HTTP layer itself.
-
-Logging: only the model name and failure *type* are logged — never the
-API key, and never the customer's question or the generated answer.
+No API keys required — everything runs locally.
 """
 import logging
-
-import requests
 from django.conf import settings
+import requests
 
 logger = logging.getLogger("chatbot.llm")
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-REQUEST_TIMEOUT_SECONDS = 30
-
-# Statuses that mean "this model isn't available right now" rather than
-# "something is broken" — worth trying the next model for these.
-RETRYABLE_STATUS_CODES = {429, 402, 500, 502, 503, 504}
+OLLAMA_HOST = getattr(settings, "OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = getattr(settings, "OLLAMA_MODEL", "qwen2.5:3b")
+OLLAMA_EMBED_MODEL = getattr(settings, "OLLAMA_EMBED_MODEL", "nomic-embed-text")
+REQUEST_TIMEOUT_SECONDS = 120
 
 
 class AllModelsFailedError(Exception):
-    """Raised when every candidate model failed. Caller shows a friendly error."""
+    """Raised when the model fails."""
 
 
 class _RetryableModelError(Exception):
-    """Internal signal: this model failed in a way that justifies trying the next one."""
+    """Internal signal: the model failed."""
 
 
-def _candidate_models() -> list[str]:
-    """Primary -> configured fallbacks -> free fallback, de-duplicated, order preserved."""
-    models = [settings.OPENROUTER_PRIMARY_MODEL, *settings.OPENROUTER_FALLBACK_MODELS]
-    if settings.OPENROUTER_FREE_FALLBACK_MODEL not in models:
-        models.append(settings.OPENROUTER_FREE_FALLBACK_MODEL)
+def _call_ollama(model: str, messages: list[dict]) -> str:
+    """Call local Ollama instance with your model."""
+    url = f"{OLLAMA_HOST}/api/chat"
 
-    seen = set()
-    ordered = []
-    for model in models:
-        if model and model not in seen:
-            seen.add(model)
-            ordered.append(model)
-    return ordered
-
-
-def _call_model(model: str, messages: list[dict]) -> str:
-    """One attempt against one model. Raises _RetryableModelError on a fallback-worthy failure."""
     try:
         response = requests.post(
-            OPENROUTER_URL,
-            headers={
-                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={"model": model, "messages": messages, "temperature": 0.2},
+            url,
+            json={"model": model, "messages": messages, "stream": False},
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
     except requests.RequestException as exc:
-        raise _RetryableModelError(f"network error: {type(exc).__name__}") from exc
+        raise _RetryableModelError(
+            f"network error connecting to {OLLAMA_HOST}: {type(exc).__name__}"
+        ) from exc
 
-    if response.status_code in RETRYABLE_STATUS_CODES:
-        raise _RetryableModelError(f"http {response.status_code}")
-    response.raise_for_status()
-
-    data = response.json()
-
-    # OpenRouter sometimes returns 200 with an error payload (e.g. no
-    # capacity currently on a free-tier model) — treat that as retryable.
-    if "error" in data:
-        raise _RetryableModelError(f"api error: {data['error'].get('code', 'unknown')}")
+    if response.status_code != 200:
+        raise _RetryableModelError(f"http {response.status_code}: {response.text}")
 
     try:
-        return data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError) as exc:
-        raise _RetryableModelError("unexpected response shape") from exc
+        data = response.json()
+        return data["message"]["content"]
+    except (KeyError, ValueError) as exc:
+        raise _RetryableModelError(f"unexpected response shape: {exc}") from exc
 
 
 def chat_with_fallback(messages: list[dict]) -> tuple[str, str]:
     """
-    Sends `messages` (OpenAI-style [{"role": ..., "content": ...}, ...])
-    to the first candidate model that succeeds.
+    Chat using your local Ollama model (qwen2.5:3b).
 
     Returns (answer_text, model_used).
-    Raises AllModelsFailedError if every candidate model failed.
+    Raises AllModelsFailedError if the model fails.
     """
-    last_failure_reason = "no candidate models configured"
+    model = OLLAMA_MODEL
 
-    for model in _candidate_models():
-        try:
-            answer = _call_model(model, messages)
-        except _RetryableModelError as exc:
-            last_failure_reason = str(exc)
-            logger.warning("chatbot llm model unavailable model=%s reason=%s", model, exc)
-            continue
+    try:
+        answer = _call_ollama(model, messages)
+    except _RetryableModelError as exc:
+        logger.error("chatbot llm ollama failed model=%s reason=%s", model, exc)
+        raise AllModelsFailedError(str(exc))
 
-        logger.info("chatbot llm model selected model=%s", model)
-        return answer, model
+    logger.info("chatbot llm model selected model=%s host=%s", model, OLLAMA_HOST)
+    return answer, model
 
-    logger.error("chatbot llm all models failed last_reason=%s", last_failure_reason)
-    raise AllModelsFailedError(last_failure_reason)
+
+def get_embedding_model():
+    """Get embedding model name (nomic-embed-text)."""
+    return OLLAMA_EMBED_MODEL

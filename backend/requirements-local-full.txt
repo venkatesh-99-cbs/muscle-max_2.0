@@ -1,0 +1,7 @@
+# Optional dependencies for local development with full features
+
+# Embeddings support (adds ~550MB due to torch)
+sentence-transformers==3.0.1
+
+# Alternative: lightweight CPU inference with ONNX (if torch version compatibility issues)
+# onnxruntime>=1.24.0

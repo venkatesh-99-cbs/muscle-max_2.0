@@ -11,8 +11,7 @@ alembic==1.14.0
 psycopg[binary]>=3.2.0
 geoalchemy2==0.16.0
 
-# RAG/AI - Stable versions for Python 3.12
+# RAG/AI - WITHOUT torch (add later if needed)
 chromadb==0.5.23
-sentence-transformers==3.0.1
 ollama==0.4.5
-torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
+# sentence-transformers requires torch, skip for now

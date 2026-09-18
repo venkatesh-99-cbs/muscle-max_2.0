@@ -1,5 +1,6 @@
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.chatbot.models import KnowledgeChunk
@@ -12,6 +13,8 @@ class AskChatbotView(APIView):
     """POST /api/chatbot/ask/  — see docs/API_WORKFLOW.md for the contract."""
 
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "chatbot"
 
     def post(self, request):
         serializer = ChatRequestSerializer(data=request.data)

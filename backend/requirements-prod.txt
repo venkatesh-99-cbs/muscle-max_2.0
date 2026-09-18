@@ -1,0 +1,16 @@
+Django==5.0.6
+djangorestframework==3.15.1
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.3.1
+python-dotenv==1.0.1
+gunicorn==22.0.0
+
+# Database
+psycopg2-binary==2.9.10
+pgvector==0.2.5
+
+# HTTP client (for Ollama API calls)
+requests==2.32.3
+
+# RAG/AI (lightweight for Docker - no torch)
+ollama>=0.4.5

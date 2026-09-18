@@ -59,7 +59,13 @@ class CartItemDetailView(APIView):
 
     def patch(self, request, pk):
         item = self._get_item(request, pk)
-        quantity = request.data.get("quantity")
+        try:
+            quantity = int(request.data.get("quantity"))
+        except (TypeError, ValueError):
+            return Response(
+                {"quantity": ["A positive whole number is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if quantity is None or int(quantity) < 1:
             return Response({"quantity": ["Must be ≥ 1."]}, status=status.HTTP_400_BAD_REQUEST)
         item.quantity = int(quantity)

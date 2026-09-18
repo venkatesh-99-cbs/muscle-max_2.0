@@ -13,8 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+if not DEBUG and SECRET_KEY == "dev-only-change-me":
+    raise RuntimeError("DJANGO_SECRET_KEY must be configured when DJANGO_DEBUG is False.")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -91,6 +94,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticatedOrReadOnly",),
 }
 
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+    "chatbot": os.getenv("CHATBOT_RATE_LIMIT", "30/hour"),
+}
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -100,6 +107,13 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "True") == "True"
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
@@ -117,20 +131,8 @@ AUTH_USER_MODEL = "accounts.User"
 
 # --- RAG / chatbot specific settings ---
 
-# Chat completions: OpenRouter, with automatic fallback across models.
-# See apps/chatbot/llm_client.py. Never hardcode the key — only .env.
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-OPENROUTER_PRIMARY_MODEL = os.getenv("OPENROUTER_PRIMARY_MODEL", "openai/gpt-4o-mini")
-OPENROUTER_FALLBACK_MODELS = [
-    m.strip() for m in os.getenv("OPENROUTER_FALLBACK_MODELS", "").split(",") if m.strip()
-]
-# Last-resort free-tier model, always appended if not already in the list above.
-# Check https://openrouter.ai/models?max_price=0 for the current free-tier
-# model IDs and update this if your chosen one is deprecated.
-OPENROUTER_FREE_FALLBACK_MODEL = os.getenv(
-    "OPENROUTER_FREE_FALLBACK_MODEL", "meta-llama/llama-3.2-3b-instruct:free"
-)
 
-# Embeddings: run locally (free, no API key) since OpenRouter only serves
-# chat completions, not embeddings. See apps/chatbot/rag/embeddings.py.
+
+# Embeddings: run locally (free, no API key)
+# See apps/chatbot/rag/embeddings.py.
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
