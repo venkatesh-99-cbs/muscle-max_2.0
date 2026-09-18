@@ -135,4 +135,6 @@ AUTH_USER_MODEL = "accounts.User"
 
 # Embeddings: run locally (free, no API key)
 # See apps/chatbot/rag/embeddings.py.
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
