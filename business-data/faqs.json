@@ -1,0 +1,57 @@
+[
+  {
+    "id": "faq-who-can-use",
+    "question": "Who can use Muscle Max supplements?",
+    "answer": "Most Muscle Max products are formulated for healthy adults engaged in regular training or looking to support general nutrition. Specific recommendations vary by product — check the individual product's 'who should use' and 'precautions' notes, or ask about a specific product by name."
+  },
+  {
+    "id": "faq-age-limit",
+    "question": "Is there an age limit for supplements?",
+    "answer": "As a general guideline, sports-performance products (protein powders, pre-workout, creatine, amino acids) are formulated for adults 18+ and are not recommended for minors without a doctor's guidance. Basic health & nutrition items (like multivitamins) may have age-appropriate versions, but our standard products are also formulated for adults — a parent/guardian should consult a pediatrician before giving any supplement to a minor."
+  },
+  {
+    "id": "faq-how-to-use-safely",
+    "question": "How do I use a supplement safely?",
+    "answer": "Always follow the serving size printed on the product label — more is not better. Introduce one new supplement at a time so you can tell what's causing any reaction. Stay well hydrated, especially with creatine and pre-workout. If you're pregnant, nursing, taking medication, or managing a medical condition, check with a doctor before starting any new supplement."
+  },
+  {
+    "id": "faq-side-effects",
+    "question": "Are there side effects I should know about?",
+    "answer": "Effects vary by product. Stimulant-containing items (like pre-workout) can affect sleep or cause jitteriness if taken late in the day or in excess. Beta-alanine commonly causes a harmless tingling sensation. High-mineral or vitamin products can cause digestive upset if you exceed the labeled dose. Ask about a specific product for its individual precautions, or consult a doctor if you have concerns."
+  },
+  {
+    "id": "faq-combine-supplements",
+    "question": "Can I take multiple supplements together?",
+    "answer": "Many customers combine products from different categories (e.g. whey protein + creatine, or a multivitamin + omega-3). Be mindful of overlapping ingredients across products (for example, several products may each contain caffeine) so you don't unintentionally exceed a safe total. If you're combining several supplements or are on medication, it's worth checking with a doctor or pharmacist first."
+  },
+  {
+    "id": "faq-similar-products",
+    "question": "What's similar to a product I'm looking at?",
+    "answer": "Each product page lists related/similar products in the same category — for example, Whey Protein's alternatives include Casein Protein (slower-release) and Mass Gainer (higher calorie). Ask the chatbot 'what's similar to <product name>?' for a direct comparison."
+  },
+  {
+    "id": "faq-pregnant-nursing",
+    "question": "Can I use these products while pregnant or nursing?",
+    "answer": "We recommend consulting a doctor before using any supplement while pregnant or nursing — this applies across our whole range, not just one product."
+  },
+  {
+    "id": "faq-allergens",
+    "question": "Do your products contain common allergens?",
+    "answer": "Several protein products contain milk (dairy), and some items may contain soy or be produced in facilities that also process nuts or gluten-containing ingredients. Always check the specific product's allergen information before purchasing if you have an allergy."
+  },
+  {
+    "id": "faq-delivery",
+    "question": "How does delivery work?",
+    "answer": "Muscle Max ships across India via trusted courier partners (Blue Dart, DTDC). Standard delivery takes 3–5 business days after order confirmation. Express delivery (1–2 business days) is available for select pin codes at an additional charge. Shipping is free on orders above ₹999; orders below ₹999 attract a flat ₹79 shipping fee. You will receive a tracking link via SMS/email once your order is dispatched."
+  },
+  {
+    "id": "faq-returns",
+    "question": "What is your return/refund policy?",
+    "answer": "We accept returns within 7 days of delivery on unopened, sealed products in original packaging. To initiate a return, email support@musclemax.in with your order number and reason. Once the returned item is received and inspected, refunds are processed to the original payment method within 5–7 business days. We do not accept returns on opened products or items damaged due to misuse."
+  },
+  {
+    "id": "faq-contact",
+    "question": "How can I contact Muscle Max?",
+    "answer": "You can reach our support team at support@musclemax.in or call us at +91-98765-43210. Our support hours are Monday to Saturday, 10 AM – 7 PM IST. For order-related queries, please have your order number ready."
+  }
+]

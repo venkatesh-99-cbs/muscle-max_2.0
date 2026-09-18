@@ -1,0 +1,11 @@
+{
+  "business_name": "Muscle Max",
+  "support_email": "support@musclemax.in",
+  "support_phone": "+91-98765-43210",
+  "support_hours": "Monday to Saturday, 10 AM – 7 PM IST",
+  "store_locations": "Online-only. We ship across all of India. No physical retail stores.",
+  "social_links": {
+    "instagram": "https://www.instagram.com/musclemax.in",
+    "website": "https://www.musclemax.in"
+  }
+}
