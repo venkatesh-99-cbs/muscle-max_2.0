@@ -1,302 +1,146 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { askChatbot } from "../../services/chatbotApi";
 
 const SUGGESTED_PROMPTS = [
-  "What protein products do you have?",
-  "What is your return policy?",
-  "How much is 100% Whey Isolate?",
-  "Do you have vegan protein?",
+  "What products are available?",
+  "Can you help me compare products?",
+  "What are your shipping and return policies?",
 ];
+
+const WIDGET_STYLES = `
+  .mm-chat-toggle { position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 999; width: 3.8rem; height: 3.8rem; border: 1px solid rgba(251,191,36,.48); border-radius: 50%; background: var(--gradient-brand); color: #fff; box-shadow: 0 10px 28px rgba(0,0,0,.4), 0 0 0 5px rgba(249,115,22,.12); cursor: pointer; font-size: 1.35rem; transition: transform .18s ease, box-shadow .18s ease; }
+  .mm-chat-toggle:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 15px 32px rgba(0,0,0,.5), 0 0 0 7px rgba(249,115,22,.14); }
+  .mm-chat-toggle:focus-visible, .mm-chat-action:focus-visible, .mm-chat-close:focus-visible, .mm-chat-prompt:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+  .mm-chat-panel { position: fixed; right: 1.5rem; bottom: 6.35rem; z-index: 998; width: min(25.5rem, calc(100vw - 2rem)); height: min(38rem, calc(100dvh - 8rem)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-moderate); border-radius: var(--radius-xl); background: var(--bg-surface); box-shadow: 0 24px 60px rgba(0,0,0,.55); animation: mm-chat-in .22s ease-out both; }
+  .mm-chat-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem 1.1rem; background: linear-gradient(110deg, var(--bg-elevated), #261b12); border-bottom: 1px solid var(--border-subtle); }
+  .mm-chat-identity { display: flex; min-width: 0; align-items: center; gap: .7rem; }
+  .mm-chat-mark { display: grid; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; place-items: center; border-radius: var(--radius-md); background: var(--gradient-brand); color: #fff; font-weight: 900; box-shadow: 0 5px 14px rgba(249,115,22,.25); }
+  .mm-chat-title { margin: 0; color: var(--text-primary); font-size: .95rem; font-weight: 800; letter-spacing: .01em; }
+  .mm-chat-status { display: flex; align-items: center; gap: .35rem; margin: .13rem 0 0; color: var(--text-secondary); font-size: .7rem; }
+  .mm-chat-status-dot { width: .4rem; height: .4rem; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(34,197,94,.12); }
+  .mm-chat-close { width: 2rem; height: 2rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 1.35rem; line-height: 1; }
+  .mm-chat-close:hover { background: rgba(255,255,255,.07); color: var(--text-primary); }
+  .mm-chat-context { display: flex; align-items: flex-start; gap: .6rem; margin: .75rem .85rem 0; padding: .65rem .7rem; border: 1px solid rgba(251,146,60,.45); border-left: 3px solid var(--brand-primary); border-radius: var(--radius-md); background: rgba(249,115,22,.09); }
+  .mm-chat-context-copy { min-width: 0; flex: 1; color: var(--text-secondary); font-size: .76rem; line-height: 1.35; }
+  .mm-chat-context-label { display: block; margin-bottom: .14rem; color: var(--brand-accent); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .mm-chat-dismiss { border: 0; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+  .mm-chat-prompts { padding: .75rem .85rem .3rem; }
+  .mm-chat-section-label { display: block; margin-bottom: .45rem; color: var(--text-muted); font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .mm-chat-prompt-row { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .35rem; scrollbar-width: thin; }
+  .mm-chat-prompt { flex: 0 0 auto; border: 1px solid var(--border-moderate); border-radius: var(--radius-full); background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; padding: .38rem .65rem; font: inherit; font-size: .72rem; transition: border-color .16s ease, color .16s ease, background .16s ease; }
+  .mm-chat-prompt:hover { border-color: var(--brand-primary); background: rgba(249,115,22,.08); color: var(--text-primary); }
+  .mm-chat-thread { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: .75rem; overflow-y: auto; padding: .85rem; }
+  .mm-chat-message { display: flex; flex-direction: column; gap: .2rem; max-width: 88%; }
+  .mm-chat-message--user { align-self: flex-end; align-items: flex-end; }
+  .mm-chat-message--assistant { align-self: flex-start; }
+  .mm-chat-speaker { color: var(--text-muted); font-size: .64rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+  .mm-chat-bubble { padding: .7rem .8rem; border: 1px solid var(--border-moderate); border-radius: var(--radius-lg); background: var(--bg-elevated); color: var(--text-primary); font-size: .84rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .mm-chat-message--user .mm-chat-bubble { border-color: transparent; border-bottom-right-radius: .35rem; background: var(--brand-primary); color: #fff; }
+  .mm-chat-message--assistant .mm-chat-bubble { border-top-left-radius: .35rem; }
+  .mm-chat-typing { display: flex; align-items: center; gap: .45rem; color: var(--text-muted); font-size: .75rem; }
+  .mm-chat-typing-dots { display: inline-flex; gap: .2rem; } .mm-chat-typing-dots i { width: .32rem; height: .32rem; border-radius: 50%; background: var(--brand-secondary); animation: mm-dot 1s infinite alternate; } .mm-chat-typing-dots i:nth-child(2) { animation-delay: .15s; } .mm-chat-typing-dots i:nth-child(3) { animation-delay: .3s; }
+  .mm-chat-form { display: flex; gap: .5rem; padding: .75rem .85rem .85rem; border-top: 1px solid var(--border-subtle); background: var(--bg-elevated); }
+  .mm-chat-input { min-width: 0; flex: 1; }
+  .mm-chat-action { border: 0; border-radius: var(--radius-md); background: var(--brand-primary); color: #fff; cursor: pointer; padding: .55rem .8rem; font: inherit; font-size: .78rem; font-weight: 800; transition: background .16s ease, transform .16s ease; }
+  .mm-chat-action:hover:not(:disabled) { background: var(--brand-primary-dark); transform: translateY(-1px); }
+  .mm-chat-action:disabled, .mm-chat-prompt:disabled { cursor: not-allowed; opacity: .55; }
+  @keyframes mm-chat-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes mm-dot { to { opacity: .35; transform: translateY(-2px); } }
+  @media (max-width: 480px) { .mm-chat-toggle { right: 1rem; bottom: 1rem; } .mm-chat-panel { right: 1rem; bottom: 5.75rem; width: calc(100vw - 2rem); height: min(39rem, calc(100dvh - 7rem)); } }
+  @media (prefers-reduced-motion: reduce) { .mm-chat-panel, .mm-chat-typing-dots i { animation: none; } .mm-chat-toggle, .mm-chat-action { transition: none; } }
+`;
+
+function normaliseContext(detail) {
+  if (typeof detail === "string") return { prompt: detail, label: "Suggested question" };
+  if (!detail || typeof detail !== "object") return null;
+  const prompt = detail.prompt || detail.question || detail.hint || detail.text;
+  if (typeof prompt !== "string" || !prompt.trim()) return null;
+  return { prompt: prompt.trim(), label: detail.label || detail.source || "Suggested question" };
+}
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: "welcome",
-      role: "bot",
-      text: "Hello! I am your Muscle Max AI Assistant. Ask me anything about our supplements, prices, usage instructions, or store policies!",
-    },
-  ]);
+  const [messages, setMessages] = useState([{ id: "welcome", role: "assistant", text: "Welcome to Muscle Max. I can help you find information in our catalog and store policies." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [contextSuggestion, setContextSuggestion] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const onContext = (event) => {
+      const suggestion = normaliseContext(event.detail);
+      if (!suggestion) return;
+      setContextSuggestion(suggestion);
+      setIsOpen(true);
+    };
+    window.addEventListener("musclemax:chat-context", onContext);
+    return () => window.removeEventListener("musclemax:chat-context", onContext);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, loading]);
 
   const handleSend = async (questionText) => {
-    const q = (questionText || input).trim();
-    if (!q || loading) return;
-
-    const userMessageId = Date.now().toString();
-    setMessages((prev) => [...prev, { id: userMessageId, role: "user", text: q }]);
+    const question = (questionText || input).trim();
+    if (!question || loading) return;
+    setMessages((previous) => [...previous, { id: `${Date.now()}-user`, role: "user", text: question }]);
     setInput("");
     setLoading(true);
-
     try {
-      const res = await askChatbot(q);
-      const botAnswer = res.data?.answer || "I don't know based on the available Muscle Max information.";
-      setMessages((prev) => [
-        ...prev,
-        { id: (Date.now() + 1).toString(), role: "bot", text: botAnswer },
-      ]);
-    } catch (err) {
-      console.error("Chatbot query failed", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "bot",
-          text: "I don't know based on the available Muscle Max information.",
-        },
-      ]);
+      const response = await askChatbot(question);
+      const answer = response.data?.answer || "I don't know based on the available Muscle Max information.";
+      setMessages((previous) => [...previous, { id: `${Date.now()}-assistant`, role: "assistant", text: answer }]);
+    } catch (error) {
+      console.error("Chatbot query failed", error);
+      setMessages((previous) => [...previous, { id: `${Date.now()}-error`, role: "assistant", text: "I don't know based on the available Muscle Max information." }]);
     } finally {
       setLoading(false);
     }
   };
 
+  const askContextSuggestion = () => {
+    if (!contextSuggestion) return;
+    const { prompt } = contextSuggestion;
+    setContextSuggestion(null);
+    handleSend(prompt);
+  };
+
   return (
     <>
-      {/* Floating Action Button */}
-      <button
-        id="chat-widget-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          position: "fixed",
-          bottom: "1.75rem",
-          right: "1.75rem",
-          width: "3.75rem",
-          height: "3.75rem",
-          borderRadius: "var(--radius-full)",
-          background: "var(--gradient-brand)",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-          boxShadow: "var(--shadow-glow), 0 4px 20px rgba(0,0,0,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "1.75rem",
-          zIndex: 999,
-          transition: "transform var(--transition-base), box-shadow var(--transition-base)",
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
-        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-        aria-label="Toggle Muscle Max AI Assistant"
-      >
-        {isOpen ? "✕" : "💬"}
+      <style>{WIDGET_STYLES}</style>
+      <button id="chat-widget-toggle" className="mm-chat-toggle" type="button" onClick={() => setIsOpen((open) => !open)} aria-label={isOpen ? "Close Muscle Max assistant" : "Open Muscle Max assistant"} aria-expanded={isOpen} aria-controls="musclemax-chat-panel">
+        {isOpen ? "×" : "✦"}
       </button>
-
-      {/* Slide-Up Chat Panel */}
       {isOpen && (
-        <div
-          className="slide-up"
-          style={{
-            position: "fixed",
-            bottom: "6rem",
-            right: "1.75rem",
-            width: "min(400px, calc(100vw - 2rem))",
-            height: "min(560px, calc(100vh - 8rem))",
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-moderate)",
-            borderRadius: "var(--radius-xl)",
-            boxShadow: "var(--shadow-lg), 0 0 50px rgba(0,0,0,0.7)",
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 998,
-            overflow: "hidden",
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              padding: "1rem 1.25rem",
-              background: "var(--bg-elevated)",
-              borderBottom: "1px solid var(--border-subtle)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span
-                style={{
-                  width: "2.25rem",
-                  height: "2.25rem",
-                  background: "var(--gradient-brand)",
-                  borderRadius: "var(--radius-md)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.1rem",
-                }}
-              >
-                ⚡
-              </span>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>Muscle Max AI</div>
-                <div style={{ fontSize: "0.75rem", color: "var(--success)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--success)" }} />
-                  Grounded in Verified Store Data
-                </div>
-              </div>
+        <section id="musclemax-chat-panel" className="mm-chat-panel" aria-label="Muscle Max assistant">
+          <header className="mm-chat-header">
+            <div className="mm-chat-identity">
+              <span className="mm-chat-mark" aria-hidden="true">M</span>
+              <div><h2 className="mm-chat-title">Muscle Max Assistant</h2><p className="mm-chat-status"><span className="mm-chat-status-dot" aria-hidden="true" />Store information assistant</p></div>
             </div>
+            <button className="mm-chat-close" type="button" onClick={() => setIsOpen(false)} aria-label="Close assistant">×</button>
+          </header>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "var(--text-muted)",
-                fontSize: "1.1rem",
-                cursor: "pointer",
-                padding: "0.25rem",
-              }}
-            >
-              ✕
-            </button>
-          </div>
+          {contextSuggestion && <aside className="mm-chat-context" aria-label="Product suggestion"><div className="mm-chat-context-copy"><span className="mm-chat-context-label">{contextSuggestion.label}</span>{contextSuggestion.prompt}</div><button className="mm-chat-dismiss" type="button" onClick={() => setContextSuggestion(null)} aria-label="Dismiss suggested question">×</button></aside>}
 
-          {/* Quick Prompts (visible when few messages) */}
-          {messages.length <= 2 && (
-            <div
-              style={{
-                padding: "0.75rem 1rem",
-                background: "var(--bg-card)",
-                borderBottom: "1px solid var(--border-subtle)",
-                display: "flex",
-                gap: "0.5rem",
-                overflowX: "auto",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {SUGGESTED_PROMPTS.map((prompt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSend(prompt)}
-                  style={{
-                    background: "var(--bg-elevated)",
-                    border: "1px solid var(--border-moderate)",
-                    color: "var(--text-secondary)",
-                    borderRadius: "var(--radius-full)",
-                    padding: "0.3rem 0.75rem",
-                    fontSize: "0.75rem",
-                    cursor: "pointer",
-                    transition: "all var(--transition-fast)",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.color = "var(--brand-primary)";
-                    e.currentTarget.style.borderColor = "var(--brand-primary)";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.color = "var(--text-secondary)";
-                    e.currentTarget.style.borderColor = "var(--border-moderate)";
-                  }}
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          )}
+          {messages.length === 1 && <section className="mm-chat-prompts" aria-label="Suggested questions"><span className="mm-chat-section-label">Suggested questions</span><div className="mm-chat-prompt-row">{SUGGESTED_PROMPTS.map((prompt) => <button className="mm-chat-prompt" type="button" key={prompt} onClick={() => handleSend(prompt)} disabled={loading}>{prompt}</button>)}{contextSuggestion && <button className="mm-chat-prompt" type="button" onClick={askContextSuggestion} disabled={loading}>Ask about this product</button>}</div></section>}
 
-          {/* Message Thread */}
-          <div
-            style={{
-              flex: 1,
-              padding: "1rem",
-              overflowY: "auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.75rem",
-            }}
-          >
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: m.role === "user" ? "flex-end" : "flex-start",
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: "85%",
-                    padding: "0.75rem 1rem",
-                    borderRadius: "var(--radius-lg)",
-                    fontSize: "0.875rem",
-                    lineHeight: 1.5,
-                    background:
-                      m.role === "user"
-                        ? "var(--brand-primary)"
-                        : "var(--bg-elevated)",
-                    color: m.role === "user" ? "#fff" : "var(--text-primary)",
-                    border:
-                      m.role === "user"
-                        ? "none"
-                        : "1px solid var(--border-moderate)",
-                    boxShadow: "var(--shadow-sm)",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {m.text}
-                </div>
-              </div>
-            ))}
-
-            {loading && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-muted)", fontSize: "0.8125rem", padding: "0.5rem" }}>
-                <div className="spinner spinner-sm" />
-                <span>Consulting verified catalog & policies...</span>
-              </div>
-            )}
+          <main className="mm-chat-thread" aria-live="polite" aria-busy={loading}>
+            {messages.map((message) => <article className={`mm-chat-message mm-chat-message--${message.role}`} key={message.id}><span className="mm-chat-speaker">{message.role === "user" ? "You" : "Muscle Max"}</span><div className="mm-chat-bubble">{message.text}</div></article>)}
+            {loading && <div className="mm-chat-typing"><span className="mm-chat-typing-dots" aria-hidden="true"><i /><i /><i /></span>Checking available store information…</div>}
             <div ref={messagesEndRef} />
-          </div>
+          </main>
 
-          {/* Input Footer */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            style={{
-              padding: "0.75rem 1rem",
-              background: "var(--bg-elevated)",
-              borderTop: "1px solid var(--border-subtle)",
-              display: "flex",
-              gap: "0.5rem",
-            }}
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Ask about supplements, price, dosage..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              disabled={loading}
-              className="form-input"
-              style={{
-                flex: 1,
-                fontSize: "0.875rem",
-                padding: "0.6rem 0.875rem",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || loading}
-              className="btn btn-primary btn-sm"
-              style={{ padding: "0.6rem 1rem" }}
-            >
-              Send
-            </button>
+          <form className="mm-chat-form" onSubmit={(event) => { event.preventDefault(); handleSend(); }}>
+            <input ref={inputRef} className="form-input mm-chat-input" type="text" value={input} onChange={(event) => setInput(event.target.value)} disabled={loading} placeholder="Ask about a product or policy" aria-label="Ask Muscle Max a question" />
+            <button className="mm-chat-action" type="submit" disabled={loading || !input.trim()}>Send</button>
           </form>
-        </div>
+        </section>
       )}
     </>
   );
