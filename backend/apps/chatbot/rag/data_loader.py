@@ -190,26 +190,30 @@ def sync_business_info(data_dir: Path) -> int:
 
 def _build_product_chunk(product) -> tuple[str, dict]:
     """Generate detailed context and metadata for a product chunk."""
-    specs_str = ""
+    similars_str = ""
     if product.specs and isinstance(product.specs, dict):
         similars = product.specs.get("similar_products")
         if similars:
-            specs_str += f" Similar products / alternatives: {', '.join(similars)}."
+            similars_str = f"Similar products / alternatives: {', '.join(similars)}."
 
-    text = (
-        f"Product: {product.name} (Category: {product.category.name})\n"
-        f"Price: ₹{product.price if product.price else 'TBD'}\n"
-        f"Description: {product.description}\n"
-        f"How to use: {product.how_to_use}\n"
-        f"Who should use it: {product.who_should_use}\n"
-        f"Age recommendation: {product.age_recommendation}\n"
-        f"Precautions & Safety: {product.precautions}\n"
-        f"{specs_str}"
-    ).strip()
+    # Natural-language paragraph format — better for both semantic and keyword retrieval.
+    lines = [
+        f"Product Name: {product.name}",
+        f"Category: {product.category.name}",
+        f"Price: ₹{product.price if product.price else 'TBD'}",
+        f"Description: {product.description}" if product.description else "",
+        f"How to use: {product.how_to_use}" if product.how_to_use else "",
+        f"Who should use: {product.who_should_use}" if product.who_should_use else "",
+        f"Age recommendation: {product.age_recommendation}" if product.age_recommendation else "",
+        f"Precautions & Safety: {product.precautions}" if product.precautions else "",
+        similars_str if similars_str else "",
+    ]
+    text = "\n".join(line for line in lines if line).strip()
 
     metadata = {
         "id": str(product.id),
         "name": product.name,
+        "title": product.name,
         "category": product.category.name,
         "price": str(product.price) if product.price else "",
         "slug": product.slug,

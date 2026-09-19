@@ -5,6 +5,7 @@ if the question is outside Muscle Max store information or cannot be answered
 from context, reply with the exact fallback answer.
 """
 import logging
+import re
 from apps.chatbot.llm_client import AllModelsFailedError, chat_with_fallback
 
 logger = logging.getLogger("chatbot.generator")
@@ -31,27 +32,47 @@ FAREWELL_ANSWER = (
     "or order advice from Muscle Max."
 )
 
-SYSTEM_PROMPT = f"""You are the official Muscle Max customer support and supplement advisor assistant.
+SYSTEM_PROMPT = f"""You are the official Muscle Max AI assistant — a helpful, knowledgeable, and friendly supplement advisor and customer support agent for the Muscle Max store.
 
-Strict Rules:
-- Answer ONLY using the "Context" provided below. Do not use outside knowledge, guess, or invent details.
-- If the Context does not contain the answer, or if the user asks about anything unrelated to Muscle Max (e.g. general trivia, coding, non-fitness topics), reply EXACTLY:
-  "{FALLBACK_ANSWER}"
-- Keep answers professional, concise, direct, and well-formatted with key details (benefits, how to use, precautions, price if requested).
-- Never invent a price, ingredient, dosage, or policy detail that isn't in the Context.
+RULES (follow strictly, in order):
+1. Answer ONLY using the numbered "Context" sections provided in the user message. Do NOT use your own knowledge or make up any detail.
+2. If the Context does not contain enough information to answer, reply with EXACTLY this sentence (nothing else):
+   "{FALLBACK_ANSWER}"
+3. If the question is completely unrelated to Muscle Max, supplements, fitness, health, or store policies, reply with EXACTLY:
+   "{FALLBACK_ANSWER}"
+4. Write concise, clear, professional answers. Use bullet points for lists (benefits, steps, dosage).
+5. When mentioning a price, dosage, ingredient, or policy, quote it directly from the Context — do not paraphrase or estimate.
+6. Never say "According to the context" or "Based on the context" — just answer directly.
 """
 
 
 def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str:
     """
     High-reliability extractive fallback when the LLM is temporarily unreachable.
-    Returns the most relevant grounded text from the top chunk.
+    Picks the most relevant sentences from top chunks based on keyword overlap.
     """
     if not context_chunks:
         return FALLBACK_ANSWER
 
-    top_chunk = context_chunks[0].strip()
-    return top_chunk
+    # Pull key terms from the question
+    q_terms = set(re.findall(r"[a-zA-Z0-9]{4,}", question.lower()))
+
+    best_sentences = []
+    for chunk in context_chunks[:3]:
+        sentences = [s.strip() for s in chunk.replace("\n", " ").split(".") if len(s.strip()) > 20]
+        for sentence in sentences:
+            score = sum(1 for t in q_terms if t in sentence.lower())
+            if score > 0:
+                best_sentences.append((score, sentence))
+
+    if best_sentences:
+        best_sentences.sort(key=lambda x: x[0], reverse=True)
+        top = [s for _, s in best_sentences[:3]]
+        return ". ".join(top).strip() + "."
+
+    # Absolute fallback: return first 2 lines of top chunk
+    first_lines = [line.strip() for line in context_chunks[0].split("\n") if line.strip()][:3]
+    return " ".join(first_lines)
 
 
 def generate_answer(
@@ -65,7 +86,7 @@ def generate_answer(
       - The model returned the FALLBACK_ANSWER.
     """
     # 1. Handle conversational intents immediately
-    if intent == "greeting":
+    if intent in ("greeting", "identity"):
         suggestions = [
             "What products are available?",
             "What is Whey Protein and how to use it?",
@@ -87,9 +108,16 @@ def generate_answer(
             "What are your shipping and return policies?",
         ]
 
-    # 3. Formulate the grounded prompt
-    context_str = "\n\n---\n\n".join(context_chunks)
-    user_message = f"Context:\n{context_str}\n\nQuestion: {question}"
+    # 3. Formulate the grounded prompt with clearly numbered, labelled context chunks
+    numbered_chunks = "\n\n".join(
+        f"[Context {i+1}]\n{chunk.strip()}"
+        for i, chunk in enumerate(context_chunks)
+    )
+    user_message = (
+        f"{numbered_chunks}\n\n"
+        f"Question: {question}\n\n"
+        f"Answer (based ONLY on the context above):"
+    )
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -107,18 +135,24 @@ def generate_answer(
     # 4. Check if answer matches the golden rule fallback
     grounded = FALLBACK_ANSWER.lower() not in answer.lower()
 
-    # Generate helpful suggestions based on query
-    suggestions = []
-    q_lower = question.lower()
-    if "protein" in q_lower:
-        suggestions = ["How to use Whey Protein?", "Difference between Whey and Casein?", "Precautions for Protein?"]
-    elif "creatine" in q_lower:
-        suggestions = ["How much creatine per day?", "Do I need to drink more water?", "What can I stack with creatine?"]
-    elif "shipping" in q_lower or "delivery" in q_lower:
-        suggestions = ["Is express delivery available?", "What is the return policy?", "How to track my order?"]
-    elif "return" in q_lower or "refund" in q_lower:
-        suggestions = ["How to initiate a return?", "How long do refunds take?", "Customer support contact"]
+    # Generate helpful suggestions based on query and groundedness
+    if not grounded:
+        suggestions = [
+            "What products are available?",
+            "What are your shipping and return policies?",
+            "How can I contact customer support?",
+        ]
     else:
-        suggestions = ["Can you help me compare products?", "What are your shipping policies?"]
+        q_lower = question.lower()
+        if "protein" in q_lower:
+            suggestions = ["How to use Whey Protein?", "Difference between Whey and Casein?", "Precautions for Protein?"]
+        elif "creatine" in q_lower:
+            suggestions = ["How much creatine per day?", "Do I need to drink more water?", "What can I stack with creatine?"]
+        elif "shipping" in q_lower or "delivery" in q_lower:
+            suggestions = ["Is express delivery available?", "What is the return policy?", "How to track my order?"]
+        elif "return" in q_lower or "refund" in q_lower:
+            suggestions = ["How to initiate a return?", "How long do refunds take?", "Customer support contact"]
+        else:
+            suggestions = ["Can you help me compare products?", "What are your shipping policies?"]
 
     return answer, grounded, model_used, suggestions
