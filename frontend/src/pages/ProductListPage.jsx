@@ -66,10 +66,9 @@ export default function ProductListPage() {
   const handleAddToCart = async (e, product) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { navigate("/login"); return; }
     try {
       setAddingId(product.id);
-      await addItem(product.id, 1);
+      await addItem(product.id, 1, product);
       showToast("✓ Added to cart!");
     } catch {
       showToast("Failed to add to cart");

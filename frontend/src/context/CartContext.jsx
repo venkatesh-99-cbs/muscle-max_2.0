@@ -68,7 +68,15 @@ export function CartProvider({ children }) {
     }
   }, [cart, user]);
 
-  const addItem = async (productId, quantity = 1, productDetails = null) => {
+  const addItem = async (productIdOrProduct, quantity = 1, productDetails = null) => {
+    let productId = productIdOrProduct;
+    let details = productDetails;
+
+    if (typeof productIdOrProduct === "object" && productIdOrProduct !== null) {
+      productId = productIdOrProduct.id;
+      details = details || productIdOrProduct;
+    }
+
     if (user) {
       const res = await addToCart(productId, quantity);
       await fetchCart();
@@ -78,7 +86,9 @@ export function CartProvider({ children }) {
     // Guest cart handler
     setCart((prev) => {
       const items = [...(prev?.items || [])];
-      const existingIdx = items.findIndex((i) => (i.product?.id || i.product_id || i.id) === productId);
+      const existingIdx = items.findIndex(
+        (i) => (i.product?.id || i.product_id || i.id) === productId
+      );
 
       if (existingIdx > -1) {
         items[existingIdx] = {
@@ -90,7 +100,7 @@ export function CartProvider({ children }) {
           id: `guest_${Date.now()}_${productId}`,
           product_id: productId,
           quantity,
-          product: productDetails || { id: productId, price: productDetails?.price || 0 },
+          product: details || { id: productId, name: "Product", price: 0 },
         });
       }
 

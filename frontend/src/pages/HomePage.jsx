@@ -92,10 +92,9 @@ export default function HomePage() {
   const handleAddToCart = async (e, product) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { navigate("/login"); return; }
     try {
       setAddingId(product.id);
-      await addItem(product.id, 1);
+      await addItem(product.id, 1, product);
       showToast("✓ Added to cart!");
     } catch {
       showToast("Failed to add to cart");
@@ -124,15 +123,15 @@ export default function HomePage() {
       <section
         style={{
           position: "relative",
-          minHeight: "600px",
+          minHeight: "620px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
           padding: "6.5rem 1.5rem 5.5rem",
-          backgroundImage: "linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.85) 60%, #0a0a0a 100%), url('/images/hero-bg.jpg')",
+          backgroundImage: "linear-gradient(180deg, rgba(8,8,8,0.22) 0%, rgba(8,8,8,0.42) 55%, #0a0a0a 100%), url('/images/hero-bg.jpg')",
           backgroundSize: "cover",
-          backgroundPosition: "center 30%",
+          backgroundPosition: "center 35%",
           backgroundRepeat: "no-repeat",
           overflow: "hidden",
         }}
@@ -190,6 +189,7 @@ export default function HomePage() {
               color: "#ffffff",
               marginBottom: "1rem",
               textTransform: "uppercase",
+              textShadow: "0 4px 24px rgba(0,0,0,0.95), 0 2px 6px rgba(0,0,0,0.9)",
             }}
           >
             FUEL YOUR{" "}
@@ -197,7 +197,7 @@ export default function HomePage() {
               style={{
                 color: "var(--brand-primary)",
                 display: "inline-block",
-                textShadow: "0 0 35px rgba(158,230,0,0.3)",
+                textShadow: "0 0 35px rgba(158,230,0,0.4), 0 3px 12px rgba(0,0,0,0.9)",
               }}
             >
               PEAK PERFORMANCE
@@ -207,11 +207,12 @@ export default function HomePage() {
           <p
             style={{
               fontSize: "clamp(0.95rem, 2vw, 1.15rem)",
-              color: "#d1d1d1",
+              color: "#ffffff",
               maxWidth: "640px",
               margin: "0 auto 2.5rem",
               lineHeight: 1.65,
-              textShadow: "0 2px 8px rgba(0,0,0,0.7)",
+              fontWeight: 500,
+              textShadow: "0 2px 14px rgba(0,0,0,0.95), 0 1px 4px rgba(0,0,0,1)",
             }}
           >
             Engineered for bodybuilders, athletes, and fitness enthusiasts across India.

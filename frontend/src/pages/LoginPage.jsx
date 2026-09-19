@@ -123,7 +123,7 @@ export default function LoginPage() {
         <p style={{ textAlign: "center", marginTop: "1.5rem", color: "var(--text-muted)", fontSize: "0.875rem" }}>
           Don't have an account?{" "}
           <Link
-            to="/register"
+            to={`/register?redirect=${encodeURIComponent(redirectUrl)}`}
             style={{ color: "var(--brand-primary)", fontWeight: 700 }}
             onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
             onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}

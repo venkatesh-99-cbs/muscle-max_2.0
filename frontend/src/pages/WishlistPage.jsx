@@ -26,13 +26,9 @@ export default function WishlistPage() {
 
   const handleAddToCart = async (e, product) => {
     e.preventDefault();
-    if (!user) {
-      navigate("/login");
-      return;
-    }
     try {
       setAddingId(product.id);
-      await addItem(product.id, 1);
+      await addItem(product.id, 1, product);
       showToast(`✓ Added ${product.name} to cart!`);
     } catch {
       showToast("Failed to add to cart");

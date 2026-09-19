@@ -70,10 +70,9 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!user) { navigate("/login"); return; }
     try {
       setAdding(true);
-      await addItem(product.id, quantity);
+      await addItem(product.id, quantity, product);
       showToast(`✓ Added ${quantity} item${quantity > 1 ? "s" : ""} to your cart!`);
     } catch {
       showToast("Failed to add to cart");
