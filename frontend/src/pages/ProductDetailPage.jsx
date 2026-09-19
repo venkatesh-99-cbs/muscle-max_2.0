@@ -6,12 +6,29 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/common/Spinner";
 import Button from "../components/common/Button";
+import {
+  ShieldCheckIcon,
+  TruckIcon,
+  RotateCcwIcon,
+  StarIcon,
+  HeartIcon,
+  BotIcon,
+  FileTextIcon,
+  UserIcon,
+  AlertCircleIcon,
+  ProteinIcon,
+  DumbbellIcon,
+  LeafIcon,
+  ZapIcon,
+} from "../components/common/Icons";
 
-const PRODUCT_ICONS = {
-  Protein: "🥛",
-  "Performance Supplements": "⚡",
-  "Health & Nutrition": "🌿",
-};
+function renderCategoryIcon(catName) {
+  if (catName === "Protein") return <ProteinIcon size={44} color="var(--brand-primary)" />;
+  if (catName === "Performance Supplements") return <DumbbellIcon size={44} color="var(--brand-primary)" />;
+  if (catName === "Health & Nutrition") return <LeafIcon size={44} color="var(--brand-primary)" />;
+  return <ZapIcon size={44} color="var(--brand-primary)" />;
+}
+
 
 function AccordionItem({ title, children }) {
   const [open, setOpen] = useState(false);
@@ -101,7 +118,7 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <div style={{ textAlign: "center", padding: "5rem 1.5rem" }}>
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>😕</div>
+        <div style={{ marginBottom: "1rem" }}><AlertCircleIcon size={48} color="#94a3b8" /></div>
         <h2 style={{ color: "#fff", marginBottom: "0.75rem" }}>{error || "Product not found"}</h2>
         <Link to="/products" className="btn btn-primary" style={{ marginTop: "1rem" }}>
           ← Back to Products
@@ -110,7 +127,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  const icon = PRODUCT_ICONS[product.category?.name] || "⚡";
   const wishlisted = isWishlisted(product.id);
 
   return (
@@ -170,10 +186,9 @@ export default function ProductDetailPage() {
                   display: product.image ? "none" : "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "6rem",
                 }}
               >
-                {icon}
+                {renderCategoryIcon(product.category?.name)}
               </div>
             </div>
             {/* Ask AI button */}
@@ -182,19 +197,24 @@ export default function ProductDetailPage() {
               style={{
                 width: "100%",
                 padding: "0.85rem",
-                background: "#1a1a0a",
-                border: "1px solid rgba(183,255,0,0.35)",
+                background: "#14171d",
+                border: "1px solid rgba(158,230,0,0.35)",
                 borderRadius: "var(--radius-md)",
                 color: "var(--brand-primary)",
                 fontWeight: 700,
                 fontSize: "0.9rem",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
                 transition: "all var(--transition-fast)",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.background = "#222210")}
-              onMouseOut={(e) => (e.currentTarget.style.background = "#1a1a0a")}
+              onMouseOver={(e) => (e.currentTarget.style.background = "#1b2129")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "#14171d")}
             >
-              🤖 Ask AI About This Product
+              <BotIcon size={18} color="var(--brand-primary)" />
+              <span>Ask AI About This Product</span>
             </button>
           </div>
 
@@ -208,8 +228,10 @@ export default function ProductDetailPage() {
             <h1 style={{ fontSize: "clamp(1.5rem, 4vw, 2.25rem)", fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: "0.75rem" }}>
               {product.name}
             </h1>
-            <div style={{ color: "#ffd700", fontSize: "0.9rem", marginBottom: "1rem" }}>
-              ⭐ 4.8 &nbsp;·&nbsp; <span style={{ color: "var(--text-muted)" }}>120+ reviews</span>
+            <div style={{ color: "#ffd700", fontSize: "0.9rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+              <StarIcon size={15} color="#ffb800" />
+              <span>4.8 &nbsp;·&nbsp;</span>
+              <span style={{ color: "var(--text-muted)" }}>120+ reviews</span>
             </div>
             <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "var(--brand-primary)", marginBottom: "1.5rem" }}>
               ₹{parseFloat(product.price).toLocaleString("en-IN")}
@@ -237,7 +259,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={() => {
                   toggleItem(product);
-                  showToast(wishlisted ? "Removed from wishlist" : "♥ Added to wishlist!");
+                  showToast(wishlisted ? "Removed from wishlist" : "Added to wishlist!");
                 }}
                 style={{
                   width: "3rem",
@@ -255,25 +277,33 @@ export default function ProductDetailPage() {
                 }}
                 title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
               >
-                {wishlisted ? "♥" : "♡"}
+                <HeartIcon
+                  size={19}
+                  filled={wishlisted}
+                  color={wishlisted ? "#ef4444" : "#94a3b8"}
+                />
               </button>
             </div>
 
             {/* Trust badges */}
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
-              {[{ icon: "🛡️", label: "100% Authentic" }, { icon: "🚚", label: "Free Shipping >₹999" }, { icon: "↩️", label: "7-Day Returns" }].map((b) => (
+              {[
+                { icon: <ShieldCheckIcon size={15} color="var(--brand-primary)" />, label: "100% Authentic" },
+                { icon: <TruckIcon size={15} color="var(--brand-primary)" />, label: "Free Shipping >₹999" },
+                { icon: <RotateCcwIcon size={15} color="var(--brand-primary)" />, label: "7-Day Returns" },
+              ].map((b) => (
                 <span
                   key={b.label}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.35rem",
+                    gap: "0.45rem",
                     fontSize: "0.78rem",
                     color: "var(--text-muted)",
                     background: "#1a1a1a",
                     border: "1px solid #292929",
                     borderRadius: "var(--radius-full)",
-                    padding: "0.3rem 0.75rem",
+                    padding: "0.35rem 0.85rem",
                   }}
                 >
                   {b.icon} {b.label}
@@ -284,22 +314,50 @@ export default function ProductDetailPage() {
             {/* Accordion Info */}
             <div>
               {product.how_to_use && (
-                <AccordionItem title="📋 How to Use">
+                <AccordionItem
+                  title={
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                      <FileTextIcon size={15} color="var(--brand-primary)" />
+                      <span>How to Use</span>
+                    </span>
+                  }
+                >
                   <p>{product.how_to_use}</p>
                 </AccordionItem>
               )}
               {product.who_should_use && (
-                <AccordionItem title="👤 Who Should Use">
+                <AccordionItem
+                  title={
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                      <UserIcon size={15} color="var(--brand-primary)" />
+                      <span>Who Should Use</span>
+                    </span>
+                  }
+                >
                   <p>{product.who_should_use}</p>
                 </AccordionItem>
               )}
               {product.age_recommendation && (
-                <AccordionItem title="🔞 Age Recommendation">
+                <AccordionItem
+                  title={
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                      <ShieldCheckIcon size={15} color="var(--brand-primary)" />
+                      <span>Age Recommendation</span>
+                    </span>
+                  }
+                >
                   <p>{product.age_recommendation}</p>
                 </AccordionItem>
               )}
               {product.precautions && (
-                <AccordionItem title="⚠️ Precautions & Safety">
+                <AccordionItem
+                  title={
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                      <AlertCircleIcon size={15} color="var(--brand-primary)" />
+                      <span>Precautions & Safety</span>
+                    </span>
+                  }
+                >
                   <p>{product.precautions}</p>
                 </AccordionItem>
               )}
@@ -328,7 +386,7 @@ export default function ProductDetailPage() {
                   onClick={() => navigate(`/products/${rp.id}`)}
                 >
                   <div className="product-card-image-placeholder">
-                    {PRODUCT_ICONS[rp.category?.name] || "⚡"}
+                    {renderCategoryIcon(rp.category?.name)}
                   </div>
                   <div className="product-card-body">
                     <div className="product-card-category">{rp.category?.name}</div>

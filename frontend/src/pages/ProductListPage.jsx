@@ -6,6 +6,15 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/common/Spinner";
 import Button from "../components/common/Button";
+import {
+  SearchIcon,
+  HeartIcon,
+  StarIcon,
+  ProteinIcon,
+  DumbbellIcon,
+  LeafIcon,
+  ZapIcon,
+} from "../components/common/Icons";
 
 const ALL_CATEGORIES = [
   { label: "All", value: "" },
@@ -21,11 +30,13 @@ const SORT_OPTIONS = [
   { label: "Name A–Z", value: "name_asc" },
 ];
 
-const PRODUCT_ICONS = {
-  Protein: "🥛",
-  "Performance Supplements": "⚡",
-  "Health & Nutrition": "🌿",
-};
+function renderCategoryIcon(catName) {
+  if (catName === "Protein") return <ProteinIcon size={38} color="var(--brand-primary)" />;
+  if (catName === "Performance Supplements") return <DumbbellIcon size={38} color="var(--brand-primary)" />;
+  if (catName === "Health & Nutrition") return <LeafIcon size={38} color="var(--brand-primary)" />;
+  return <ZapIcon size={38} color="var(--brand-primary)" />;
+}
+
 
 export default function ProductListPage() {
   const [products, setProducts] = useState([]);
@@ -135,7 +146,7 @@ export default function ProductListPage() {
         >
           {/* Search */}
           <div className="search-bar-wrap" style={{ flex: 1, minWidth: "220px" }}>
-            <span className="search-bar-icon">🔍</span>
+            <span className="search-bar-icon"><SearchIcon size={16} color="var(--text-muted)" /></span>
             <input
               type="text"
               id="product-search"
@@ -196,7 +207,7 @@ export default function ProductListPage() {
           <div className="page-loading"><Spinner size="lg" /></div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "5rem 1rem" }}>
-            <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>🔍</div>
+            <div style={{ marginBottom: "1rem" }}><SearchIcon size={48} color="#475569" /></div>
             <h3 style={{ color: "#fff", marginBottom: "0.5rem" }}>No products found</h3>
             <p style={{ color: "var(--text-muted)" }}>Try a different search or category filter.</p>
           </div>
@@ -220,7 +231,11 @@ export default function ProductListPage() {
                   onClick={(e) => handleWishlist(e, product)}
                   title={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                 >
-                  {isWishlisted(product.id) ? "♥" : "♡"}
+                  <HeartIcon
+                    size={17}
+                    filled={isWishlisted(product.id)}
+                    color={isWishlisted(product.id) ? "#ef4444" : "#94a3b8"}
+                  />
                 </button>
 
                 {product.image ? (
@@ -238,13 +253,16 @@ export default function ProductListPage() {
                   className="product-card-image-placeholder"
                   style={{ display: product.image ? "none" : "flex" }}
                 >
-                  {PRODUCT_ICONS[product.category?.name] || "⚡"}
+                  {renderCategoryIcon(product.category?.name)}
                 </div>
 
                 <div className="product-card-body">
                   <div className="product-card-category">{product.category?.name || "Supplement"}</div>
                   <div className="product-card-name" title={product.name}>{product.name}</div>
-                  <div className="product-card-rating">⭐ 4.8 · 120+ Reviews</div>
+                  <div className="product-card-rating" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <StarIcon size={14} color="#ffb800" />
+                    <span>4.8 · 120+ Reviews</span>
+                  </div>
                   <div className="product-card-footer">
                     <div className="product-card-price">₹{parseFloat(product.price).toLocaleString("en-IN")}</div>
                     <Button

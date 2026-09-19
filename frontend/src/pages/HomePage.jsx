@@ -6,6 +6,23 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/common/Spinner";
 import Button from "../components/common/Button";
+import {
+  ZapIcon,
+  ShieldCheckIcon,
+  TruckIcon,
+  LockIcon,
+  CheckIcon,
+  StarIcon,
+  HeartIcon,
+  ChatIcon,
+  ProteinIcon,
+  DumbbellIcon,
+  LeafIcon,
+  MailIcon,
+  PhoneIcon,
+  ClockIcon,
+  InstagramIcon,
+} from "../components/common/Icons";
 
 const CATEGORIES = [
   {
@@ -47,16 +64,16 @@ const CATEGORIES = [
 ];
 
 const TRUST_ITEMS = [
-  { icon: "✓", title: "Quality", desc: "Premium batch-tested nutrition products from verified manufacturers." },
-  { icon: "🛡️", title: "Genuine", desc: "100% authentic brands. Zero counterfeit tolerance, guaranteed." },
-  { icon: "🚚", title: "Fast Delivery", desc: "Dispatch in 24–48 hrs. Ships Pan-India via Blue Dart & DTDC." },
-  { icon: "🔒", title: "Secure", desc: "Safe checkout with UPI, card and COD payment options." },
+  { icon: <CheckIcon size={26} color="var(--brand-primary)" />, title: "Quality Tested", desc: "Premium batch-tested nutrition products from verified manufacturers." },
+  { icon: <ShieldCheckIcon size={26} color="var(--brand-primary)" />, title: "100% Genuine", desc: "Direct brand sourcing with zero counterfeit tolerance, guaranteed." },
+  { icon: <TruckIcon size={26} color="var(--brand-primary)" />, title: "Fast Dispatch", desc: "Ships within 24–48 hrs Pan-India via Blue Dart & DTDC express." },
+  { icon: <LockIcon size={26} color="var(--brand-primary)" />, title: "Secure Checkout", desc: "Safe encrypted checkout with UPI, card, and cash on delivery." },
 ];
 
 const STATS = [
   { number: "50K+", label: "Happy Customers" },
   { number: "200+", label: "Premium Products" },
-  { number: "4.8★", label: "Average Rating" },
+  { number: "4.8", label: "Average Rating", hasStar: true },
   { number: "24h", label: "Dispatch Time" },
 ];
 
@@ -107,10 +124,14 @@ export default function HomePage() {
     e.preventDefault();
     e.stopPropagation();
     toggleItem(product);
-    showToast(isWishlisted(product.id) ? "Removed from wishlist" : "♥ Added to wishlist!");
+    showToast(isWishlisted(product.id) ? "Removed from wishlist" : "Added to wishlist!");
   };
 
-  const PRODUCT_ICONS = { Protein: "🥛", "Performance Supplements": "⚡", "Health & Nutrition": "🌿" };
+  const PRODUCT_ICONS = {
+    Protein: <ProteinIcon size={34} color="var(--brand-primary)" />,
+    "Performance Supplements": <DumbbellIcon size={34} color="var(--brand-primary)" />,
+    "Health & Nutrition": <LeafIcon size={34} color="var(--brand-primary)" />,
+  };
 
   return (
     <div>
@@ -166,7 +187,7 @@ export default function HomePage() {
               boxShadow: "0 4px 15px rgba(0,0,0,0.4)",
             }}
           >
-            <span style={{ color: "var(--brand-primary)", fontSize: "0.95rem" }}>⚡</span>
+            <ZapIcon size={14} color="var(--brand-primary)" />
             <span
               style={{
                 color: "#fff",
@@ -255,9 +276,13 @@ export default function HomePage() {
                 background: "rgba(20,20,20,0.85)",
                 border: "1px solid #333",
                 backdropFilter: "blur(8px)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
               }}
             >
-              💬 Ask AI Supplement Advisor
+              <ChatIcon size={18} color="var(--brand-primary)" />
+              <span>Ask AI Supplement Advisor</span>
             </button>
           </div>
         </div>
@@ -278,8 +303,20 @@ export default function HomePage() {
         >
           {STATS.map((s) => (
             <div key={s.label}>
-              <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--brand-primary)", lineHeight: 1 }}>
-                {s.number}
+              <div
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: 900,
+                  color: "var(--brand-primary)",
+                  lineHeight: 1,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.25rem",
+                }}
+              >
+                <span>{s.number}</span>
+                {s.hasStar && <StarIcon size={18} color="var(--brand-primary)" filled={true} />}
               </div>
               <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.35rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {s.label}
@@ -328,16 +365,16 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          FEATURED PRODUCTS (OUR PRODUCTS)
+          OUR TOP PRODUCTS
           ═══════════════════════════════════════ */}
       <section className="section" id="shop" style={{ background: "#0b0b0b" }}>
         <div className="container">
           <div className="flex-between" style={{ marginBottom: "2.5rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <span className="section-label">Bestsellers</span>
-              <h2 style={{ color: "#fff", marginBottom: "0.25rem" }}>OUR PRODUCTS</h2>
+              <h2 style={{ color: "#fff", marginBottom: "0.25rem" }}>OUR TOP PRODUCTS</h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9375rem" }}>
-                Quality nutrition for better performance.
+                Quality nutrition for elite performance and maximum gains.
               </p>
             </div>
             <Link to="/products" className="btn btn-outline-brand btn-sm">
@@ -361,13 +398,18 @@ export default function HomePage() {
                   className="product-card"
                   onClick={() => navigate(`/products/${product.id}`)}
                 >
-                  {/* Wishlist heart */}
+                  {/* Wishlist button */}
                   <button
                     className={`wishlist-btn${isWishlisted(product.id) ? " active" : ""}`}
                     onClick={(e) => handleWishlist(e, product)}
                     title={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    {isWishlisted(product.id) ? "♥" : "♡"}
+                    <HeartIcon
+                      size={18}
+                      filled={isWishlisted(product.id)}
+                      color={isWishlisted(product.id) ? "#ef4444" : "#ffffff"}
+                    />
                   </button>
 
                   {product.image ? (
@@ -383,15 +425,18 @@ export default function HomePage() {
                   ) : null}
                   <div
                     className="product-card-image-placeholder"
-                    style={{ display: product.image ? "none" : "flex" }}
+                    style={{ display: product.image ? "none" : "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    {PRODUCT_ICONS[product.category?.name] || "⚡"}
+                    {PRODUCT_ICONS[product.category?.name] || <ZapIcon size={32} color="var(--brand-primary)" />}
                   </div>
 
                   <div className="product-card-body">
                     <div className="product-card-category">{product.category?.name || "Supplement"}</div>
                     <div className="product-card-name" title={product.name}>{product.name}</div>
-                    <div className="product-card-rating">⭐ 4.8 · 120+ Reviews</div>
+                    <div className="product-card-rating" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      <StarIcon size={14} color="#f59e0b" filled={true} />
+                      <span>4.8 · 120+ Reviews</span>
+                    </div>
                     <div className="product-card-footer">
                       <div className="product-card-price">₹{parseFloat(product.price).toLocaleString("en-IN")}</div>
                       <Button
@@ -429,8 +474,10 @@ export default function HomePage() {
           >
             {TRUST_ITEMS.map((item) => (
               <div key={item.title} className="trust-card">
-                <span className="trust-card-icon" style={{ fontSize: "2rem" }}>{item.icon}</span>
-                <h3>✓ {item.title}</h3>
+                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(158,230,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+                  {item.icon}
+                </div>
+                <h3>{item.title}</h3>
                 <p>{item.desc}</p>
               </div>
             ))}
@@ -478,10 +525,10 @@ export default function HomePage() {
             }}
           >
             {[
-              { icon: "✉️", label: "Email", value: "support@musclemax.in" },
-              { icon: "📞", label: "Phone", value: "+91-98765-43210" },
-              { icon: "🕐", label: "Hours", value: "Mon–Sat, 10 AM – 7 PM IST" },
-              { icon: "📸", label: "Instagram", value: "@musclemax.in" },
+              { icon: <MailIcon size={26} color="var(--brand-primary)" />, label: "Email", value: "support@musclemax.in" },
+              { icon: <PhoneIcon size={26} color="var(--brand-primary)" />, label: "Phone", value: "+91-98765-43210" },
+              { icon: <ClockIcon size={26} color="var(--brand-primary)" />, label: "Hours", value: "Mon–Sat, 10 AM – 7 PM IST" },
+              { icon: <InstagramIcon size={26} color="var(--brand-primary)" />, label: "Instagram", value: "@musclemax.in" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -496,7 +543,7 @@ export default function HomePage() {
                 onMouseOver={(e) => (e.currentTarget.style.borderColor = "var(--brand-primary)")}
                 onMouseOut={(e) => (e.currentTarget.style.borderColor = "#292929")}
               >
-                <div style={{ fontSize: "1.75rem", marginBottom: "0.75rem" }}>{item.icon}</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>{item.icon}</div>
                 <div style={{ color: "var(--brand-primary)", fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.4rem" }}>
                   {item.label}
                 </div>
@@ -522,7 +569,7 @@ export default function HomePage() {
               className="newsletter-form"
               onSubmit={(e) => {
                 e.preventDefault();
-                showToast("🎉 Subscribed successfully!");
+                showToast("Subscribed successfully!");
                 e.target.reset();
               }}
             >

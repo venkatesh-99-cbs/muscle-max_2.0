@@ -46,9 +46,11 @@ CRITICAL RULES:
    • Mention who it's suitable for and key precautions/allergens.
 3. If asked about policies (returns, refunds, shipping):
    • Provide clear timelines, requirements, and support email (support@musclemax.in).
-4. If the Context does not contain enough information to answer, reply with EXACTLY:
+4. MANDATORY NOTE: Always conclude your response with a dedicated note callout formatted as:
+   **Note:** <helpful reminder, hydration advice, or customer service tip>
+5. If the Context does not contain enough information to answer, reply with EXACTLY:
    "{FALLBACK_ANSWER}"
-5. Never say "based on the provided context", "according to the context", or "as mentioned above". Introduce your answer directly and authoritatively as the MuscleMax supplement advisor.
+6. Never say "based on the provided context", "according to the context", or "as mentioned above". Introduce your answer directly and authoritatively as the MuscleMax supplement advisor.
 """
 
 
@@ -121,7 +123,8 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     "• **Return Window:** Returns are accepted within **7 days of delivery** on unopened, sealed products in original packaging.\n"
                     "• **Refund Processing:** Processed within **5–7 business days** to your original payment method once inspected.\n"
                     "• **Non-Returnable:** Opened or tampered products cannot be returned.\n"
-                    "• **How to Request:** Email **support@musclemax.in** with your order number and reason for return."
+                    "• **How to Request:** Email **support@musclemax.in** with your order number and reason for return.\n\n"
+                    "**Note:** Please keep your order number and unboxing details ready when contacting support for faster resolution."
                 )
 
     # 2. Delivery & Shipping policy question
@@ -133,7 +136,8 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     "• **Standard Delivery:** 3–5 business days across India via Blue Dart and DTDC.\n"
                     "• **Express Delivery:** 1–2 business days available for select metro areas (+₹99).\n"
                     "• **Free Shipping:** Automatic free shipping on all orders over **₹999** (flat ₹79 shipping fee for orders under ₹999).\n"
-                    "• **Tracking:** Real-time SMS and email tracking links are sent upon dispatch."
+                    "• **Tracking:** Real-time SMS and email tracking links are sent upon dispatch.\n\n"
+                    "**Note:** Orders placed before 2 PM IST are prioritized for dispatch within 24 hours."
                 )
 
     # 3. Product specific question
@@ -158,6 +162,7 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     resp.append(f"• **Recommended For:** {fields['who_should_use']}")
                 if fields.get("precautions"):
                     resp.append(f"• **Precautions:** {fields['precautions']}")
+                resp.append(f"\n**Note:** Drink plenty of water throughout the day. Do not exceed the recommended daily serving size.")
                 return "\n".join(resp)
 
             # Case B: Who should use / age
@@ -168,6 +173,7 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     resp.append(f"• **Age Recommendation:** {fields['age']}")
                 if fields.get("how_to_use"):
                     resp.append(f"• **How to Take:** {fields['how_to_use']}")
+                resp.append(f"\n**Note:** Formulated for healthy adults 18+. Minors should consult a healthcare professional before use.")
                 return "\n".join(resp)
 
             # Case C: Precautions / side effects
@@ -176,6 +182,7 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                 resp.append(f"• **Safety Notes:** {fields['precautions']}")
                 if fields.get("age"):
                     resp.append(f"• **Age Guideline:** {fields['age']}")
+                resp.append(f"\n**Note:** If you are pregnant, nursing, taking medication, or have a medical condition, consult your doctor before use.")
                 return "\n".join(resp)
 
             # Case D: Pricing
@@ -186,6 +193,7 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     resp.append(f"• **Category:** {fields['category']}")
                 if fields.get("description"):
                     resp.append(f"• **Overview:** {fields['description']}")
+                resp.append(f"\n**Note:** Free standard shipping is automatically applied on orders above ₹999.")
                 return "\n".join(resp)
 
             # General Product Overview
@@ -205,6 +213,7 @@ def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str
                     resp.append(f"• **Who Should Use:** {fields['who_should_use']}")
                     has_content = True
                 if has_content:
+                    resp.append(f"\n**Note:** Authentic supplement sourced directly with batch-tested quality assurance.")
                     return "\n".join(resp)
 
     # 3. Delivery & Shipping policy question
