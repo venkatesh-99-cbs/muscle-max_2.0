@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Product Details | MuscleMax</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<header>
+
+    <div>
+
+        <span class="logo">
+            MUSCLEMAX
+        </span>
+
+        <span class="tagline">
+            FUEL YOUR JOURNEY
+        </span>
+
+    </div>
+
+
+    <nav>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="index.html#shop">
+            Shop
+        </a>
+
+        <a href="wishlist.html">
+            ❤️ Wishlist
+        </a>
+
+        <a href="cart.html">
+            🛒 Cart
+            <span id="cartCount">0</span>
+        </a>
+
+    </nav>
+
+</header>
+
+
+
+<!-- PRODUCT DETAILS -->
+
+<section class="product-details-page">
+
+    <div class="product-details-container">
+
+
+        <!-- IMAGE -->
+
+        <div class="product-details-image">
+
+            <img
+                id="productImage"
+                src=""
+                alt="Product"
+            >
+
+        </div>
+
+
+
+        <!-- INFORMATION -->
+
+        <div class="product-details-info">
+
+            <span class="product-brand">
+                MuscleMax Nutrition
+            </span>
+
+
+            <h1 id="productName">
+                Product Name
+            </h1>
+
+
+            <div
+                class="product-rating"
+                id="productRating"
+            >
+                ⭐ 4.8
+            </div>
+
+
+            <div
+                class="product-details-price"
+                id="productPrice"
+            >
+                ₹1,999
+            </div>
+
+
+            <div class="product-detail-line">
+
+                <strong>
+                    Brand:
+                </strong>
+
+                <span id="productBrand">
+                    MuscleBlaze
+                </span>
+
+            </div>
+
+
+            <div class="product-detail-line">
+
+                <strong>
+                    Weight:
+                </strong>
+
+                <span id="productWeight">
+                    500g
+                </span>
+
+            </div>
+
+
+            <div class="product-detail-line">
+
+                <strong>
+                    Flavor:
+                </strong>
+
+                <span id="productFlavor">
+                    Rich Chocolate
+                </span>
+
+            </div>
+
+
+            <hr>
+
+
+            <h3>
+                Product Details
+            </h3>
+
+
+            <p id="productDescription">
+
+                High-quality nutrition product designed
+                for fitness enthusiasts. Suitable for
+                daily nutrition and workout routines.
+
+            </p>
+
+
+            <div class="product-detail-buttons">
+
+                <button
+                    class="add-cart"
+                    id="detailCartButton"
+                >
+                    Add to Cart
+                </button>
+
+
+                <button
+                    class="heart"
+                    id="detailWishlistButton"
+                >
+                    ♡ Add to Wishlist
+                </button>
+
+            </div>
+
+
+            <br>
+
+
+            <a
+                href="index.html#shop"
+                class="back-shop"
+            >
+                ← Back to Shop
+            </a>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<script src="script.js"></script>
+
+
+<script>
+
+    const productData = {
+
+        1: {
+
+            name: "BIOZYME PERFORMANCE WHEY",
+
+            brand: "MuscleBlaze",
+
+            price: 1999,
+
+            weight: "500g",
+
+            flavor: "Rich Chocolate",
+
+            rating: "⭐ 4.8",
+
+            image: "whey.png",
+
+            description:
+                "MuscleBlaze Biozyme Performance Whey in Rich Chocolate flavor. A convenient whey protein product for fitness and workout nutrition."
+
+        },
+
+
+        2: {
+
+            name: "BIOZYME PERFORMANCE WHEY",
+
+            brand: "MuscleBlaze",
+
+            price: 1299,
+
+            weight: "1kg",
+
+            flavor: "Rich Chocolate",
+
+            rating: "⭐ 4.7",
+
+            image: "whey1.png",
+
+            description:
+                "MuscleBlaze Biozyme Performance Whey in Rich Chocolate flavor. A convenient whey protein product for your fitness nutrition routine."
+
+        },
+
+
+        3: {
+
+            name: "Gold Standard Whey",
+
+            brand: "Optimum Nutrition",
+
+            price: 1499,
+
+            weight: "1.5kg",
+
+            flavor: "Peanut Butter",
+
+            rating: "⭐ 4.6",
+
+            image: "whey2.png",
+
+            description:
+                "Gold Standard Whey in Peanut Butter flavor. A popular protein product designed for fitness and workout nutrition."
+
+        }
+
+    };
+
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const id =
+        params.get("id");
+
+
+    const product =
+        productData[id];
+
+
+    if (product) {
+
+        document.getElementById("productImage").src =
+            product.image;
+
+        document.getElementById("productImage").alt =
+            product.name;
+
+        document.getElementById("productName").innerText =
+            product.name;
+
+        document.getElementById("productBrand").innerText =
+            product.brand;
+
+        document.getElementById("productPrice").innerText =
+            "₹" + product.price.toLocaleString("en-IN");
+
+        document.getElementById("productWeight").innerText =
+            product.weight;
+
+        document.getElementById("productFlavor").innerText =
+            product.flavor;
+
+        document.getElementById("productRating").innerText =
+            product.rating;
+
+        document.getElementById("productDescription").innerText =
+            product.description;
+
+
+        document.getElementById("detailCartButton")
+            .onclick = function() {
+
+                addToCart(Number(id));
+
+            };
+
+
+        document.getElementById("detailWishlistButton")
+            .onclick = function() {
+
+                addWishlist(Number(id));
+
+            };
+
+    }
+
+</script>
+
+
+</body>
+
+</html>

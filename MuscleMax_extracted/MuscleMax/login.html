@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MuscleMax Login</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="login-page">
+
+    <div class="login-container">
+
+        <span class="logo">
+            MUSCLEMAX
+        </span>
+
+        <h2>
+            LOGIN CENTER
+        </h2>
+
+
+        <form id="loginForm">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Enter username"
+                required
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                required
+            >
+
+
+            <button type="submit">
+                LOGIN
+            </button>
+
+        </form>
+
+
+        <p
+            id="loginError"
+            class="login-error"
+        ></p>
+
+
+        <div style="
+            margin-top:25px;
+            text-align:center;
+            color:#777;
+            font-size:12px;
+        ">
+
+            <p>Customer Demo:</p>
+
+            <p>
+                customer / customer123
+            </p>
+
+            <br>
+
+            <p>Admin Demo:</p>
+
+            <p>
+                admin / admin123
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document
+.getElementById("loginForm")
+.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+
+    const username =
+        document.getElementById("username").value.trim();
+
+    const password =
+        document.getElementById("password").value.trim();
+
+    const error =
+        document.getElementById("loginError");
+
+
+    /* ADMIN LOGIN */
+
+    if (
+        username === "admin" &&
+        password === "admin123"
+    ) {
+
+        localStorage.setItem(
+            "musclemax_user",
+
+            JSON.stringify({
+
+                username: "admin",
+
+                role: "admin"
+
+            })
+        );
+
+
+        window.location.href =
+            "admin-dashboard.html";
+
+        return;
+    }
+
+
+    /* CUSTOMER LOGIN */
+
+    if (
+        username === "customer" &&
+        password === "customer123"
+    ) {
+
+        localStorage.setItem(
+            "musclemax_user",
+
+            JSON.stringify({
+
+                username: "customer",
+
+                role: "customer"
+
+            })
+        );
+
+
+        window.location.href =
+            "index.html";
+
+        return;
+    }
+
+
+    error.innerText =
+        "Invalid username or password.";
+
+});
+
+</script>
+
+
+</body>
+</html>

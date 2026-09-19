@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Button from "../components/common/Button";
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -53,107 +52,139 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="section">
-      <div className="container" style={{ maxWidth: "460px" }}>
-        <div className="card" style={{ padding: "2.5rem 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            <span
-              style={{
-                width: "3rem",
-                height: "3rem",
-                background: "var(--gradient-brand)",
-                borderRadius: "var(--radius-md)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.5rem",
-                marginBottom: "1rem",
-              }}
-            >
-              ⚡
-            </span>
-            <h1 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.5rem" }}>
-              Join Muscle Max
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-              Create an account for personalized nutrition and fast checkout
-            </p>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#080808",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2.5rem 1.5rem",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "460px",
+          background: "#151515",
+          border: "1px solid #292929",
+          borderRadius: "var(--radius-xl)",
+          padding: "2.5rem",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        {/* Header Logo */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div
+            style={{
+              width: "3.5rem",
+              height: "3.5rem",
+              background: "var(--brand-primary)",
+              borderRadius: "var(--radius-lg)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.5rem",
+              fontWeight: 900,
+              color: "#000",
+              margin: "0 auto 1rem",
+              boxShadow: "var(--shadow-glow-sm)",
+            }}
+          >
+            M
           </div>
-
-          {error && (
-            <div className="alert alert-error" style={{ marginBottom: "1.5rem" }}>
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Vikram Singh"
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="vikram@musclemax.in"
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimum 8 characters"
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Confirm Password</label>
-              <input
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repeat your password"
-                className="form-input"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="btn-full"
-              loading={loading}
-              style={{ marginTop: "0.5rem" }}
-            >
-              Create Account
-            </Button>
-          </form>
-
-          <div style={{ textAlign: "center", marginTop: "1.75rem", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-            Already have an account?{" "}
-            <Link to={`/login?redirect=${encodeURIComponent(redirectUrl)}`} style={{ color: "var(--brand-primary)", fontWeight: 600 }}>
-              Sign In
-            </Link>
-          </div>
+          <h1 style={{ color: "#fff", fontSize: "1.6rem", fontWeight: 900, marginBottom: "0.3rem" }}>
+            Join MuscleMax
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            Create an account for personalized nutrition & fast checkout
+          </p>
         </div>
+
+        {error && (
+          <div className="alert alert-error" style={{ marginBottom: "1.5rem" }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.15rem" }}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="register-name">Full Name</label>
+            <input
+              id="register-name"
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Vikram Singh"
+              className="form-input"
+              autoComplete="name"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="register-email">Email Address</label>
+            <input
+              id="register-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="form-input"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="register-password">Password</label>
+            <input
+              id="register-password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Min. 8 characters"
+              className="form-input"
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="register-confirm">Confirm Password</label>
+            <input
+              id="register-confirm"
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter password"
+              className="form-input"
+              autoComplete="new-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={loading}
+            style={{ marginTop: "0.5rem", padding: "0.9rem", fontSize: "1rem" }}
+          >
+            {loading ? "Creating Account…" : "CREATE ACCOUNT"}
+          </button>
+        </form>
+
+        <p style={{ textAlign: "center", marginTop: "1.5rem", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+          Already have an account?{" "}
+          <Link
+            to={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
+            style={{ color: "var(--brand-primary)", fontWeight: 700 }}
+            onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
+            onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );

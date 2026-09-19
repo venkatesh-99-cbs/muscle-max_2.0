@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MuscleMax | Cart</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+        MUSCLEMAX
+    </div>
+
+    <a
+        href="index.html"
+        class="nav-button"
+    >
+        ← Continue Shopping
+    </a>
+
+</header>
+
+
+<!-- ============================= -->
+<!-- CART PAGE -->
+<!-- ============================= -->
+
+<section class="cart-page">
+
+    <div class="cart-container">
+
+        <div class="cart-title">
+
+            <h1>
+                YOUR CART
+            </h1>
+
+        </div>
+
+
+        <!-- CART PRODUCTS -->
+
+        <div id="cartItems"></div>
+
+
+        <!-- ORDER SUMMARY -->
+
+        <div
+            id="cartSummary"
+            class="cart-summary"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<script>
+
+
+/* ==========================================
+   GET CART
+   ========================================== */
+
+let cart =
+    JSON.parse(
+        localStorage.getItem(
+            "musclemax_cart"
+        )
+    ) || [];
+
+
+/* ==========================================
+   DISPLAY CART
+   ========================================== */
+
+function displayCart() {
+
+    const container =
+        document.getElementById(
+            "cartItems"
+        );
+
+    const summary =
+        document.getElementById(
+            "cartSummary"
+        );
+
+
+    /* ---------- EMPTY CART ---------- */
+
+    if (cart.length === 0) {
+
+        container.innerHTML = `
+
+            <div class="empty-cart">
+
+                <h2>
+                    Your cart is empty
+                </h2>
+
+                <p>
+                    Add some products to continue.
+                </p>
+
+                <br>
+
+                <a
+                    href="index.html"
+                    class="btn"
+                >
+                    SHOP NOW
+                </a>
+
+            </div>
+
+        `;
+
+
+        summary.innerHTML = "";
+
+        return;
+    }
+
+
+    /* ---------- CLEAR OLD ITEMS ---------- */
+
+    container.innerHTML = "";
+
+
+    let total = 0;
+
+
+    /* ---------- DISPLAY PRODUCTS ---------- */
+
+    cart.forEach(
+        function(item, index) {
+
+            const itemTotal =
+                item.price *
+                item.quantity;
+
+
+            total += itemTotal;
+
+
+            container.innerHTML += `
+
+                <div class="cart-item">
+
+                    <img
+                        src="${item.image}"
+                        alt="${item.name}"
+                    >
+
+
+                    <div class="cart-item-info">
+
+                        <h3>
+                            ${item.name}
+                        </h3>
+
+                        <div class="cart-item-price">
+                            ₹${item.price}
+                        </div>
+
+                    </div>
+
+
+                    <!-- QUANTITY -->
+
+                    <div class="quantity-controls">
+
+                        <button
+                            onclick="decreaseQuantity(${index})"
+                        >
+                            −
+                        </button>
+
+
+                        <strong>
+                            ${item.quantity}
+                        </strong>
+
+
+                        <button
+                            onclick="increaseQuantity(${index})"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+
+                    <!-- ITEM TOTAL -->
+
+                    <strong>
+                        ₹${itemTotal}
+                    </strong>
+
+
+                    <!-- REMOVE -->
+
+                    <button
+                        class="remove-btn"
+                        onclick="removeItem(${index})"
+                    >
+                        Remove
+                    </button>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    /* ======================================
+       ORDER SUMMARY
+       ====================================== */
+
+    summary.innerHTML = `
+
+        <h2>
+            Order Summary
+        </h2>
+
+
+        <div class="cart-total">
+
+            Total: ₹${total}
+
+        </div>
+
+
+        <button
+            class="checkout-btn"
+            onclick="checkout()"
+        >
+            CHECKOUT
+        </button>
+
+    `;
+
+}
+
+
+/* ==========================================
+   INCREASE QUANTITY
+   ========================================== */
+
+function increaseQuantity(index) {
+
+    cart[index].quantity++;
+
+    saveCart();
+
+}
+
+
+/* ==========================================
+   DECREASE QUANTITY
+   ========================================== */
+
+function decreaseQuantity(index) {
+
+    if (
+        cart[index].quantity > 1
+    ) {
+
+        cart[index].quantity--;
+
+    }
+
+    else {
+
+        cart.splice(index, 1);
+
+    }
+
+
+    saveCart();
+
+}
+
+
+/* ==========================================
+   REMOVE ITEM
+   ========================================== */
+
+function removeItem(index) {
+
+    cart.splice(index, 1);
+
+    saveCart();
+
+}
+
+
+/* ==========================================
+   SAVE CART
+   ========================================== */
+
+function saveCart() {
+
+    localStorage.setItem(
+
+        "musclemax_cart",
+
+        JSON.stringify(cart)
+
+    );
+
+
+    displayCart();
+
+}
+
+
+/* ==========================================
+   MUSCLEMAX TOAST POPUP
+   ========================================== */
+
+function showToast(
+    message,
+    icon = "✓"
+) {
+
+    /* Remove old popup */
+
+    const oldToast =
+        document.querySelector(
+            ".musclemax-toast"
+        );
+
+
+    if (oldToast) {
+
+        oldToast.remove();
+
+    }
+
+
+    /* Create popup */
+
+    const toast =
+        document.createElement("div");
+
+
+    toast.className =
+        "musclemax-toast";
+
+
+    toast.innerHTML = `
+
+        <div class="toast-icon">
+            ${icon}
+        </div>
+
+
+        <div class="toast-content">
+
+            <strong>
+                MuscleMax
+            </strong>
+
+            <span>
+                ${message}
+            </span>
+
+        </div>
+
+
+        <button
+            class="toast-close"
+            onclick="this.parentElement.remove()"
+        >
+            ×
+        </button>
+
+    `;
+
+
+    document.body.appendChild(toast);
+
+
+    /* Animation */
+
+    setTimeout(() => {
+
+        toast.classList.add("show");
+
+    }, 50);
+
+
+    /* Automatically hide */
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+
+        setTimeout(() => {
+
+            if (toast.parentElement) {
+
+                toast.remove();
+
+            }
+
+        }, 400);
+
+    }, 3500);
+
+}
+
+
+/* ==========================================
+   CHECKOUT
+   ========================================== */
+
+function checkout() {
+
+
+    /* ---------- CHECK EMPTY CART ---------- */
+
+    if (cart.length === 0) {
+
+        showToast(
+            "Your cart is empty. Add a product first.",
+            "!"
+        );
+
+        return;
+
+    }
+
+
+    /* ---------- GET USER ---------- */
+
+    const user =
+        JSON.parse(
+            localStorage.getItem(
+                "musclemax_user"
+            )
+        );
+
+
+    /* ---------- CHECK LOGIN ---------- */
+
+    if (
+        !user ||
+        user.role !== "customer"
+    ) {
+
+        showToast(
+            "Please login as a customer first.",
+            "!"
+        );
+
+
+        setTimeout(() => {
+
+            window.location.href =
+                "login.html";
+
+        }, 1800);
+
+
+        return;
+
+    }
+
+
+    /* ======================================
+       CALCULATE TOTAL
+       ====================================== */
+
+    const total =
+        cart.reduce(
+
+            (sum, item) =>
+
+                sum +
+                (
+                    item.price *
+                    item.quantity
+                ),
+
+            0
+
+        );
+
+
+    /* ======================================
+       GET EXISTING ORDERS
+       ====================================== */
+
+    let orders =
+        JSON.parse(
+            localStorage.getItem(
+                "musclemax_orders"
+            )
+        ) || [];
+
+
+    /* ======================================
+       CREATE ORDER
+       ====================================== */
+
+    const order = {
+
+        orderId:
+            "MM" +
+            Date.now(),
+
+
+        customer:
+            user.username,
+
+
+        items:
+            cart,
+
+
+        total:
+            total,
+
+
+        status:
+            "Pending",
+
+
+        date:
+            new Date().toLocaleString()
+
+    };
+
+
+    /* ======================================
+       SAVE ORDER
+       ====================================== */
+
+    orders.push(order);
+
+
+    localStorage.setItem(
+
+        "musclemax_orders",
+
+        JSON.stringify(orders)
+
+    );
+
+
+    /* ======================================
+       CLEAR CART
+       ====================================== */
+
+    localStorage.removeItem(
+        "musclemax_cart"
+    );
+
+
+    cart = [];
+
+
+    /* ======================================
+       SUCCESS POPUP
+       ====================================== */
+
+    showToast(
+
+        "Order confirmed! Order ID: " +
+        order.orderId,
+
+        "✓"
+
+    );
+
+
+    /* ======================================
+       GO HOME AFTER POPUP
+       ====================================== */
+
+    setTimeout(() => {
+
+        window.location.href =
+            "index.html";
+
+    }, 3500);
+
+}
+
+
+/* ==========================================
+   LOAD CART
+   ========================================== */
+
+displayCart();
+
+
+</script>
+
+
+</body>
+
+</html>

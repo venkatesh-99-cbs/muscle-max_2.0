@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MuscleMax | Admin Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body class="admin-body">
+
+
+<header class="admin-header">
+
+    <h1>
+        MUSCLEMAX ADMIN
+    </h1>
+
+    <button onclick="logoutAdmin()">
+        Logout
+    </button>
+
+</header>
+
+
+<main class="admin-dashboard">
+
+
+    <h2>
+        Dashboard Overview
+    </h2>
+
+
+    <!-- DASHBOARD CARDS -->
+
+    <div class="dashboard-cards">
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Total Products
+            </h3>
+
+            <p id="totalProducts">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Products Sold
+            </h3>
+
+            <p id="productsSold">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Delivered Orders
+            </h3>
+
+            <p id="deliveredOrders">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Pending Orders
+            </h3>
+
+            <p id="pendingOrders">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Total Customers
+            </h3>
+
+            <p id="totalCustomers">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Total Revenue
+            </h3>
+
+            <p id="totalRevenue">
+                ₹0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Cancelled Orders
+            </h3>
+
+            <p id="cancelledOrders">
+                0
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-card">
+
+            <h3>
+                Wishlist Items
+            </h3>
+
+            <p id="wishlistItems">
+                0
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- RECENT ORDERS -->
+
+    <div class="recent-orders">
+
+        <h2>
+            Recent Orders
+        </h2>
+
+
+        <table class="orders-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Order ID
+                    </th>
+
+                    <th>
+                        Customer
+                    </th>
+
+                    <th>
+                        Products
+                    </th>
+
+                    <th>
+                        Total
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="ordersTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+</main>
+
+
+<script>
+
+
+/* ==========================================
+   ADMIN SECURITY
+   ========================================== */
+
+const user =
+    JSON.parse(
+        localStorage.getItem(
+            "musclemax_user"
+        )
+    );
+
+
+if (
+    !user ||
+    user.role !== "admin"
+) {
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+/* ==========================================
+   LOAD DASHBOARD
+   ========================================== */
+
+function loadDashboard() {
+
+
+    /* PRODUCTS */
+
+    const products = [
+
+        {
+            id: 1,
+            name: "Whey Protein Isolate"
+        },
+
+        {
+            id: 2,
+            name: "Creatine Monohydrate"
+        },
+
+        {
+            id: 3,
+            name: "Pre-Workout"
+        }
+
+    ];
+
+
+    /* ORDERS */
+
+    const orders =
+        JSON.parse(
+            localStorage.getItem(
+                "musclemax_orders"
+            )
+        ) || [];
+
+
+    /* WISHLIST */
+
+    const wishlist =
+        JSON.parse(
+            localStorage.getItem(
+                "musclemax_wishlist"
+            )
+        ) || [];
+
+
+    /* TOTAL PRODUCTS */
+
+    document.getElementById(
+        "totalProducts"
+    ).innerText =
+        products.length;
+
+
+    /* PRODUCTS SOLD */
+
+    let sold = 0;
+
+
+    orders.forEach(
+        function(order) {
+
+            if (
+                order.status ===
+                "Delivered"
+            ) {
+
+                order.items.forEach(
+                    function(item) {
+
+                        sold +=
+                            item.quantity;
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "productsSold"
+    ).innerText = sold;
+
+
+    /* DELIVERED */
+
+    const delivered =
+        orders.filter(
+            order =>
+                order.status ===
+                "Delivered"
+        ).length;
+
+
+    document.getElementById(
+        "deliveredOrders"
+    ).innerText =
+        delivered;
+
+
+    /* PENDING */
+
+    const pending =
+        orders.filter(
+            order =>
+                order.status ===
+                "Pending"
+        ).length;
+
+
+    document.getElementById(
+        "pendingOrders"
+    ).innerText =
+        pending;
+
+
+    /* CUSTOMERS */
+
+    const customers =
+        [
+            ...new Set(
+                orders.map(
+                    order =>
+                        order.customer
+                )
+            )
+        ];
+
+
+    document.getElementById(
+        "totalCustomers"
+    ).innerText =
+        customers.length;
+
+
+    /* REVENUE */
+
+    let revenue = 0;
+
+
+    orders.forEach(
+        function(order) {
+
+            if (
+                order.status ===
+                "Delivered"
+            ) {
+
+                revenue +=
+                    order.total;
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "totalRevenue"
+    ).innerText =
+        "₹" +
+        revenue.toLocaleString("en-IN");
+
+
+    /* CANCELLED */
+
+    const cancelled =
+        orders.filter(
+            order =>
+                order.status ===
+                "Cancelled"
+        ).length;
+
+
+    document.getElementById(
+        "cancelledOrders"
+    ).innerText =
+        cancelled;
+
+
+    /* WISHLIST */
+
+    document.getElementById(
+        "wishlistItems"
+    ).innerText =
+        wishlist.length;
+
+
+    /* ======================================
+       ORDERS TABLE
+       ====================================== */
+
+    const table =
+        document.getElementById(
+            "ordersTable"
+        );
+
+
+    table.innerHTML = "";
+
+
+    if (orders.length === 0) {
+
+        table.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="text-align:center;"
+                >
+                    No orders yet.
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    /* SHOW NEWEST FIRST */
+
+    const reversedOrders =
+        [...orders].reverse();
+
+
+    reversedOrders.forEach(
+        function(order) {
+
+
+            const productNames =
+                order.items
+                .map(
+                    item =>
+                        item.name +
+                        " × " +
+                        item.quantity
+                )
+                .join(", ");
+
+
+            let statusClass =
+                "status-pending";
+
+
+            if (
+                order.status ===
+                "Delivered"
+            ) {
+
+                statusClass =
+                    "status-delivered";
+
+            }
+
+
+            if (
+                order.status ===
+                "Cancelled"
+            ) {
+
+                statusClass =
+                    "status-cancelled";
+
+            }
+
+
+            table.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${order.orderId}
+                    </td>
+
+                    <td>
+                        ${order.customer}
+                    </td>
+
+                    <td>
+                        ${productNames}
+                    </td>
+
+                    <td>
+                        ₹${order.total}
+                    </td>
+
+                    <td>
+
+                        <span
+                            class="status ${statusClass}"
+                        >
+                            ${order.status}
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${order.date}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+}
+
+
+/* ==========================================
+   ADMIN LOGOUT
+   ========================================== */
+
+function logoutAdmin() {
+
+    localStorage.removeItem(
+        "musclemax_user"
+    );
+
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+loadDashboard();
+
+</script>
+
+
+</body>
+</html>
