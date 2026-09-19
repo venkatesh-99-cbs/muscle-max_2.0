@@ -276,7 +276,12 @@ def _keyword_search(query: str, top_k: int, exclude_ids: Optional[set] = None):
 
     def _score(chunk: KnowledgeChunk) -> int:
         text_lower = chunk.text.lower()
-        return sum(1 for term in terms if term in text_lower)
+        base_score = sum(1 for term in terms if term in text_lower)
+        chunk_title = (chunk.metadata.get("name") or chunk.metadata.get("title") or "").lower()
+        title_matches = sum(5 for term in terms if term in chunk_title)
+        # Extra boost for exact product source chunks
+        product_boost = 3 if chunk.source_type == "product" and any(t in chunk_title for t in terms) else 0
+        return base_score + title_matches + product_boost
 
     candidates.sort(key=_score, reverse=True)
     return candidates[:top_k]

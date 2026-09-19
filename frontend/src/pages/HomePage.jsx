@@ -119,83 +119,144 @@ export default function HomePage() {
       {toast && <div className="toast">{toast}</div>}
 
       {/* ═══════════════════════════════════════
-          HERO SECTION
+          HERO SECTION (Cinematic Background Image)
           ═══════════════════════════════════════ */}
       <section
         style={{
           position: "relative",
-          minHeight: "520px",
+          minHeight: "600px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "5rem 1.5rem 4rem",
-          background: "linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), #0f0f0a",
+          padding: "6.5rem 1.5rem 5.5rem",
+          backgroundImage: "linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.85) 60%, #0a0a0a 100%), url('/images/hero-bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          backgroundRepeat: "no-repeat",
           overflow: "hidden",
         }}
       >
-        {/* Glow orbs */}
+        {/* Subtle Lime Ambient Glow */}
         <div
-          className="hero-orb"
-          style={{ width: "500px", height: "500px", background: "rgba(183,255,0,0.07)", top: "-100px", left: "50%", transform: "translateX(-50%)" }}
-        />
-        <div
-          className="hero-orb"
-          style={{ width: "300px", height: "300px", background: "rgba(183,255,0,0.04)", bottom: "-80px", right: "10%" }}
+          style={{
+            position: "absolute",
+            width: "600px",
+            height: "600px",
+            background: "radial-gradient(circle, rgba(158,230,0,0.09) 0%, rgba(10,10,10,0) 70%)",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
         />
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "860px" }}>
-          <span
-            className="badge badge-brand fade-in"
-            style={{ marginBottom: "1.5rem", fontSize: "0.75rem" }}
+        <div style={{ position: "relative", zIndex: 2, maxWidth: "880px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              background: "rgba(18,18,18,0.8)",
+              border: "1px solid rgba(158,230,0,0.3)",
+              backdropFilter: "blur(10px)",
+              padding: "0.45rem 1.1rem",
+              borderRadius: "99px",
+              marginBottom: "1.75rem",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.4)",
+            }}
           >
-            🔥 100% Authentic Indian Sports Nutrition
-          </span>
+            <span style={{ color: "var(--brand-primary)", fontSize: "0.95rem" }}>⚡</span>
+            <span
+              style={{
+                color: "#fff",
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+              }}
+            >
+              100% Authentic Indian Sports Nutrition
+            </span>
+          </div>
 
           <h1
-            className="fade-in"
             style={{
-              fontSize: "clamp(2.5rem, 7vw, 5rem)",
+              fontSize: "clamp(2.4rem, 6.5vw, 4.8rem)",
               fontWeight: 900,
-              lineHeight: 1.05,
+              lineHeight: 1.06,
               letterSpacing: "-0.02em",
-              color: "#fff",
-              marginBottom: "0",
-              animationDelay: "0.05s",
+              color: "#ffffff",
+              marginBottom: "1rem",
+              textTransform: "uppercase",
             }}
           >
             FUEL YOUR{" "}
-            <span style={{ color: "var(--brand-primary)", display: "inline-block" }}>
-              PERFORMANCE
+            <span
+              style={{
+                color: "var(--brand-primary)",
+                display: "inline-block",
+                textShadow: "0 0 35px rgba(158,230,0,0.3)",
+              }}
+            >
+              PEAK PERFORMANCE
             </span>
           </h1>
 
           <p
-            className="fade-in"
             style={{
-              fontSize: "1.1rem",
-              color: "#ccc",
-              maxWidth: "580px",
-              margin: "1.5rem auto 2.5rem",
+              fontSize: "clamp(0.95rem, 2vw, 1.15rem)",
+              color: "#d1d1d1",
+              maxWidth: "640px",
+              margin: "0 auto 2.5rem",
               lineHeight: 1.65,
-              animationDelay: "0.12s",
+              textShadow: "0 2px 8px rgba(0,0,0,0.7)",
             }}
           >
-            Premium nutrition products for your fitness journey. Trusted by 50,000+ athletes across India.
+            Engineered for bodybuilders, athletes, and fitness enthusiasts across India.
+            Pure lab-tested proteins, high-octane pre-workouts, and premium recovery formulas.
           </p>
 
-          <div className="flex-center fade-in" style={{ gap: "1rem", flexWrap: "wrap", animationDelay: "0.2s" }}>
-            <Link to="/products" className="btn btn-primary btn-lg">
-              SHOP NOW →
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              to="/products"
+              className="btn btn-primary"
+              style={{
+                padding: "0.95rem 2.2rem",
+                fontSize: "1rem",
+                fontWeight: 800,
+                letterSpacing: "0.04em",
+                boxShadow: "var(--shadow-glow)",
+              }}
+            >
+              SHOP CATALOG →
             </Link>
+
             <button
               onClick={() => {
                 const btn = document.getElementById("chat-widget-toggle");
                 if (btn) btn.click();
               }}
-              className="btn btn-secondary btn-lg"
+              className="btn btn-secondary"
+              style={{
+                padding: "0.95rem 1.8rem",
+                fontSize: "1rem",
+                fontWeight: 700,
+                background: "rgba(20,20,20,0.85)",
+                border: "1px solid #333",
+                backdropFilter: "blur(8px)",
+              }}
             >
-              💬 Ask AI Nutritionist
+              💬 Ask AI Supplement Advisor
             </button>
           </div>
         </div>

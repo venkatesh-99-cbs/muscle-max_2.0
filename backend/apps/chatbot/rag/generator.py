@@ -13,7 +13,7 @@ logger = logging.getLogger("chatbot.generator")
 FALLBACK_ANSWER = "I don't know based on the available Muscle Max information."
 
 GREETING_ANSWER = (
-    "Hello! Welcome to Muscle Max. I'm your dedicated AI supplement & store assistant. "
+    "Hello! Welcome to Muscle Max. I'm your dedicated AI supplement & store advisor. "
     "I can help you:\n"
     "• Choose the right supplements for your goals (proteins, creatines, pre-workouts, vitamins & recovery)\n"
     "• Check proper dosages, timing, and who should use each product\n"
@@ -32,47 +32,217 @@ FAREWELL_ANSWER = (
     "or order advice from Muscle Max."
 )
 
-SYSTEM_PROMPT = f"""You are the official Muscle Max AI assistant — a helpful, knowledgeable, and friendly supplement advisor and customer support agent for the Muscle Max store.
+SYSTEM_PROMPT = f"""You are the official MuscleMax AI supplement advisor and customer support specialist.
 
-RULES (follow strictly, in order):
-1. Answer ONLY using the numbered "Context" sections provided in the user message. Do NOT use your own knowledge or make up any detail.
-2. If the Context does not contain enough information to answer, reply with EXACTLY this sentence (nothing else):
+CORE INSTRUCTIONS:
+1. Speak in a helpful, knowledgeable, and professional sports nutritionist tone.
+2. Address the customer's question directly with well-structured bullet points and bold titles.
+3. If asked "how to use" or "dosage" of a product:
+   • Provide the exact scoop/serving amount and liquid (water/milk).
+   • Specify the optimal timing (e.g. post-workout, morning, before bed).
+   • Mention who it's suitable for and key precautions.
+4. If asked about policies (returns, refunds, shipping):
+   • Provide clear timelines, requirements, and support contact (support@musclemax.in).
+5. Answer ONLY using the provided Context. If the context does not contain enough information, respond with:
    "{FALLBACK_ANSWER}"
-3. If the question is completely unrelated to Muscle Max, supplements, fitness, health, or store policies, reply with EXACTLY:
-   "{FALLBACK_ANSWER}"
-4. Write concise, clear, professional answers. Use bullet points for lists (benefits, steps, dosage).
-5. When mentioning a price, dosage, ingredient, or policy, quote it directly from the Context — do not paraphrase or estimate.
-6. Never say "According to the context" or "Based on the context" — just answer directly.
+6. Never output unformatted key-value dumps or say "According to the context". Speak naturally as a dedicated nutrition advisor.
 """
+
+
+def _parse_product_chunk(chunk: str) -> dict:
+    """Extract structured fields from a product chunk."""
+    fields = {}
+    lines = chunk.strip().split("\n")
+    current_key = None
+
+    for line in lines:
+        line_s = line.strip()
+        if not line_s:
+            continue
+        if ":" in line_s:
+            parts = line_s.split(":", 1)
+            key = parts[0].strip().lower()
+            val = parts[1].strip()
+            # Standardize keys
+            if "name" in key:
+                current_key = "name"
+            elif "category" in key:
+                current_key = "category"
+            elif "price" in key:
+                current_key = "price"
+            elif "how to use" in key or "usage" in key or "directions" in key:
+                current_key = "how_to_use"
+            elif "who should use" in key or "target" in key:
+                current_key = "who_should_use"
+            elif "age" in key:
+                current_key = "age"
+            elif "precaution" in key or "safety" in key or "warning" in key:
+                current_key = "precautions"
+            elif "similar" in key or "alternative" in key:
+                current_key = "similar"
+            elif "description" in key or "overview" in key:
+                current_key = "description"
+            else:
+                current_key = key
+            fields[current_key] = val
+        elif current_key:
+            fields[current_key] += " " + line_s
+
+    return fields
 
 
 def _extractive_fallback_answer(question: str, context_chunks: list[str]) -> str:
     """
-    High-reliability extractive fallback when the LLM is temporarily unreachable.
-    Picks the most relevant sentences from top chunks based on keyword overlap.
+    High-reliability, professional structured answer generator when the LLM
+    is temporarily unreachable or in fallback mode.
+    Accurately extracts 'how to use', 'who should use', 'pricing', 'precautions',
+    and policy guidance in clean, human-friendly bullet points.
     """
     if not context_chunks:
         return FALLBACK_ANSWER
 
-    # Pull key terms from the question
-    q_terms = set(re.findall(r"[a-zA-Z0-9]{4,}", question.lower()))
+    q_lower = question.lower()
+    is_usage = any(w in q_lower for w in ["how to use", "how to take", "dosage", "serving", "directions", "when to take", "how much"])
+    is_who = any(w in q_lower for w in ["who should use", "who can use", "who is it for", "age", "under 18"])
+    is_precautions = any(w in q_lower for w in ["precaution", "precautions", "side effect", "side effects", "safety", "safe", "allergy"])
+    is_price = any(w in q_lower for w in ["price", "cost", "how much is", "pricing", "rate"])
+    is_return = any(w in q_lower for w in ["return", "returns", "refund", "refunds"])
+    is_shipping = any(w in q_lower for w in ["shipping", "delivery", "dispatch", "courier", "track"])
 
-    best_sentences = []
+    # 1. Return & Refund policy question
+    if is_return:
+        for chunk in context_chunks:
+            if "return" in chunk.lower() or "refund" in chunk.lower():
+                return (
+                    "**MuscleMax Return & Refund Policy:**\n\n"
+                    "• **Return Window:** Returns are accepted within **7 days of delivery** on unopened, sealed products in original packaging.\n"
+                    "• **Refund Processing:** Processed within **5–7 business days** to your original payment method once inspected.\n"
+                    "• **Non-Returnable:** Opened or tampered products cannot be returned.\n"
+                    "• **How to Request:** Email **support@musclemax.in** with your order number and reason for return."
+                )
+
+    # 2. Delivery & Shipping policy question
+    if is_shipping:
+        for chunk in context_chunks:
+            if "shipping" in chunk.lower() or "delivery" in chunk.lower():
+                return (
+                    "**MuscleMax Shipping & Delivery Policy:**\n\n"
+                    "• **Standard Delivery:** 3–5 business days across India via Blue Dart and DTDC.\n"
+                    "• **Express Delivery:** 1–2 business days available for select metro areas (+₹99).\n"
+                    "• **Free Shipping:** Automatic free shipping on all orders over **₹999** (flat ₹79 shipping fee for orders under ₹999).\n"
+                    "• **Tracking:** Real-time SMS and email tracking links are sent upon dispatch."
+                )
+
+    # 3. Product specific question
+    for chunk in context_chunks:
+        fields = _parse_product_chunk(chunk)
+        name = fields.get("name")
+        if not name and "Product Name:" in chunk:
+            m = re.search(r"Product Name:\s*([^\n]+)", chunk)
+            if m:
+                name = m.group(1).strip()
+
+        # Disallow policy or non-product names
+        if name and any(kw in name.lower() for kw in ["policy", "refund", "return", "shipping", "delivery", "about", "store"]):
+            name = None
+
+        if fields and name:
+            # Case A: How to use / dosage
+            if is_usage and fields.get("how_to_use"):
+                resp = [f"**How to Use {name}:**\n"]
+                resp.append(f"• **Directions & Dosage:** {fields['how_to_use']}")
+                if fields.get("who_should_use"):
+                    resp.append(f"• **Recommended For:** {fields['who_should_use']}")
+                if fields.get("precautions"):
+                    resp.append(f"• **Precautions:** {fields['precautions']}")
+                return "\n".join(resp)
+
+            # Case B: Who should use / age
+            if is_who and fields.get("who_should_use"):
+                resp = [f"**Who Should Use {name}:**\n"]
+                resp.append(f"• **Target Audience:** {fields['who_should_use']}")
+                if fields.get("age"):
+                    resp.append(f"• **Age Recommendation:** {fields['age']}")
+                if fields.get("how_to_use"):
+                    resp.append(f"• **How to Take:** {fields['how_to_use']}")
+                return "\n".join(resp)
+
+            # Case C: Precautions / side effects
+            if is_precautions and fields.get("precautions"):
+                resp = [f"**Precautions & Safety for {name}:**\n"]
+                resp.append(f"• **Safety Notes:** {fields['precautions']}")
+                if fields.get("age"):
+                    resp.append(f"• **Age Guideline:** {fields['age']}")
+                return "\n".join(resp)
+
+            # Case D: Pricing
+            if is_price and fields.get("price"):
+                resp = [f"**{name} — Pricing & Overview:**\n"]
+                resp.append(f"• **Price:** ₹{fields['price']}")
+                if fields.get("category"):
+                    resp.append(f"• **Category:** {fields['category']}")
+                if fields.get("description"):
+                    resp.append(f"• **Overview:** {fields['description']}")
+                return "\n".join(resp)
+
+            # General Product Overview
+            if any(term in name.lower() for term in q_lower.split() if len(term) > 3):
+                resp = [f"**{name} ({fields.get('category', 'Supplements')}):**\n"]
+                has_content = False
+                if fields.get("price"):
+                    resp.append(f"• **Price:** ₹{fields['price']}")
+                    has_content = True
+                if fields.get("description"):
+                    resp.append(f"• **Overview:** {fields['description']}")
+                    has_content = True
+                if fields.get("how_to_use"):
+                    resp.append(f"• **How to Use:** {fields['how_to_use']}")
+                    has_content = True
+                if fields.get("who_should_use"):
+                    resp.append(f"• **Who Should Use:** {fields['who_should_use']}")
+                    has_content = True
+                if has_content:
+                    return "\n".join(resp)
+
+    # 3. Delivery & Shipping policy question
+    if is_shipping:
+        for chunk in context_chunks:
+            if "shipping" in chunk.lower() or "delivery" in chunk.lower():
+                return (
+                    "**MuscleMax Shipping & Delivery Policy:**\n\n"
+                    "• **Standard Delivery:** 3–5 business days across India via Blue Dart and DTDC.\n"
+                    "• **Express Delivery:** 1–2 business days available for metro pin codes (+₹99).\n"
+                    "• **Free Shipping:** Free on all orders over **₹999** (flat ₹79 fee for orders under ₹999).\n"
+                    "• **Tracking:** Real-time SMS and email tracking links sent upon dispatch."
+                )
+
+    # 4. Clean sentence extraction fallback for general queries
+    q_terms = set(re.findall(r"[a-zA-Z0-9]{3,}", q_lower))
+    best_points = []
+
     for chunk in context_chunks[:3]:
-        sentences = [s.strip() for s in chunk.replace("\n", " ").split(".") if len(s.strip()) > 20]
-        for sentence in sentences:
-            score = sum(1 for t in q_terms if t in sentence.lower())
-            if score > 0:
-                best_sentences.append((score, sentence))
+        lines = [l.strip() for l in chunk.split("\n") if l.strip() and not l.startswith("Product Name:")]
+        for line in lines:
+            # Clean markdown bullets
+            clean_l = re.sub(r"^[•\-\*#]+\s*", "", line)
+            score = sum(1 for t in q_terms if t in clean_l.lower())
+            if score > 0 and len(clean_l) > 20:
+                best_points.append((score, clean_l))
 
-    if best_sentences:
-        best_sentences.sort(key=lambda x: x[0], reverse=True)
-        top = [s for _, s in best_sentences[:3]]
-        return ". ".join(top).strip() + "."
+    if best_points:
+        best_points.sort(key=lambda x: x[0], reverse=True)
+        # Deduplicate
+        seen = set()
+        unique_points = []
+        for _, pt in best_points:
+            if pt not in seen:
+                seen.add(pt)
+                unique_points.append(pt)
+            if len(unique_points) >= 3:
+                break
+        return "Here is the relevant information from MuscleMax:\n\n" + "\n".join(f"• {pt}" for pt in unique_points)
 
-    # Absolute fallback: return first 2 lines of top chunk
-    first_lines = [line.strip() for line in context_chunks[0].split("\n") if line.strip()][:3]
-    return " ".join(first_lines)
+    return FALLBACK_ANSWER
 
 
 def generate_answer(
@@ -89,9 +259,9 @@ def generate_answer(
     if intent in ("greeting", "identity"):
         suggestions = [
             "What products are available?",
-            "What is Whey Protein and how to use it?",
+            "How to use Mass Gainer?",
             "What is your return & refund policy?",
-            "How does shipping and delivery work?",
+            "How does shipping work?",
         ]
         return GREETING_ANSWER, True, "rule-based", suggestions
 
@@ -144,7 +314,9 @@ def generate_answer(
         ]
     else:
         q_lower = question.lower()
-        if "protein" in q_lower:
+        if "gainer" in q_lower or "mass" in q_lower:
+            suggestions = ["How many scoops of Mass Gainer?", "When to take Mass Gainer?", "Precautions for Mass Gainer?"]
+        elif "protein" in q_lower:
             suggestions = ["How to use Whey Protein?", "Difference between Whey and Casein?", "Precautions for Protein?"]
         elif "creatine" in q_lower:
             suggestions = ["How much creatine per day?", "Do I need to drink more water?", "What can I stack with creatine?"]

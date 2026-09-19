@@ -171,16 +171,28 @@ def sync_business_info(data_dir: Path) -> int:
         except Exception as exc:
             logger.error("Error reading extra JSON file %s: %s", extra_file, exc)
 
-    # 5. Support upcoming/future markdown and txt files (e.g. sources.md, guides, etc.)
+    # 5. Support upcoming/future markdown and txt files (e.g. knowledge-base.md, sources.md)
     for doc_file in list(data_dir.glob("*.md")) + list(data_dir.glob("*.txt")):
         if doc_file.name.lower() in {"readme.md"}:
             continue
         try:
             doc_text = doc_file.read_text(encoding="utf-8").strip()
             if doc_text:
-                title = doc_file.stem.replace("-", " ").replace("_", " ").title()
-                BusinessInfo.objects.create(category="general", title=title, content=doc_text)
-                count += 1
+                import re
+                # Split markdown into sections by header lines (# , ## , ### )
+                sections = re.split(r"\n(?=#{1,3}\s+)", doc_text)
+                for sec in sections:
+                    sec_clean = sec.strip()
+                    if not sec_clean:
+                        continue
+                    first_line = sec_clean.split("\n")[0]
+                    clean_title = re.sub(r"^#{1,4}\s*", "", first_line).strip()
+                    if not clean_title:
+                        clean_title = doc_file.stem.replace("-", " ").replace("_", " ").title()
+                    else:
+                        clean_title = f"{doc_file.stem.title()}: {clean_title}"
+                    BusinessInfo.objects.create(category="document", title=clean_title[:255], content=sec_clean)
+                    count += 1
         except Exception as exc:
             logger.error("Error reading doc file %s: %s", doc_file, exc)
 

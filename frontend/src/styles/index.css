@@ -4,29 +4,29 @@
    CSS Custom Properties — Design System (Lime Green Theme)
    ============================================================ */
 :root {
-  /* Brand colours */
-  --brand-primary: #b7ff00;       /* lime green */
-  --brand-primary-dark: #9ee600;
-  --brand-secondary: #c8ff3d;
-  --brand-accent: #d4ff66;        /* lighter lime accent */
+  /* Brand colours - Refined Athletic Lime (Balanced, modern, eye-friendly) */
+  --brand-primary: #9ee600;       /* refined electric lime */
+  --brand-primary-dark: #84cc00;
+  --brand-secondary: #b5f227;
+  --brand-accent: #cbf75e;        /* subtle highlight */
   --brand-on: #000000;            /* text colour ON brand bg */
 
   /* Backgrounds */
-  --bg-base: #0b0b0b;
-  --bg-surface: #111111;
-  --bg-elevated: #181818;
-  --bg-card: #161616;
-  --bg-glass: rgba(183,255,0,0.04);
+  --bg-base: #0a0a0a;
+  --bg-surface: #121212;
+  --bg-elevated: #1a1a1a;
+  --bg-card: #151515;
+  --bg-glass: rgba(158,230,0,0.03);
 
   /* Text */
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #888888;
+  --text-secondary: #c4c4c4;
+  --text-muted: #808080;
 
   /* Borders */
-  --border-subtle: rgba(255,255,255,0.07);
-  --border-moderate: rgba(255,255,255,0.13);
-  --border-brand: rgba(183,255,0,0.35);
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-moderate: rgba(255,255,255,0.14);
+  --border-brand: rgba(158,230,0,0.28);
 
   /* Status */
   --success: #22c55e;
@@ -35,23 +35,23 @@
   --info: #3b82f6;
 
   /* Radius */
-  --radius-sm: 5px;
+  --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.5);
-  --shadow-md: 0 4px 20px rgba(0,0,0,.6);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,.7);
-  --shadow-glow: 0 0 40px rgba(183,255,0,.3);
-  --shadow-glow-sm: 0 0 18px rgba(183,255,0,.25);
+  /* Shadows - softened to eliminate harsh glare */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,.4);
+  --shadow-md: 0 6px 24px rgba(0,0,0,.55);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,.7);
+  --shadow-glow: 0 0 28px rgba(158,230,0,.18);
+  --shadow-glow-sm: 0 0 14px rgba(158,230,0,.15);
 
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #b7ff00 0%, #d4ff66 100%);
-  --gradient-hero: linear-gradient(135deg, #0b0b0b 0%, #131308 50%, #0b0b0b 100%);
-  --gradient-card: linear-gradient(145deg, #1c1c1c, #131313);
+  --gradient-brand: linear-gradient(135deg, #9ee600 0%, #b5f227 100%);
+  --gradient-hero: linear-gradient(135deg, #0a0a0a 0%, #11140a 50%, #0a0a0a 100%);
+  --gradient-card: linear-gradient(145deg, #181818, #111111);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -728,15 +728,88 @@ p  { color: var(--text-secondary); }
   justify-content: center;
   font-size: 2.5rem;
 }
-.cart-item-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; }
-.cart-item-price { color: var(--brand-primary); font-weight: 800; font-size: 1.1rem; }
+.cart-item-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; color: #fff; }
+.cart-item-price { color: var(--brand-primary); font-weight: 800; font-size: 1.05rem; }
+
+/* Cart Layout & Items */
+.cart-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.cart-item-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition: border-color var(--transition-fast);
+}
+
+.cart-item-row:hover {
+  border-color: var(--border-moderate);
+}
+
+.cart-item-img {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  background: #1a1a1a;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.35rem;
+}
+
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: #0d0d0d;
+  border: 1px solid #2e2e2e;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.qty-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.qty-btn:hover {
+  background: rgba(158,230,0,0.15);
+  color: var(--brand-primary);
+}
+
+.qty-value {
+  min-width: 32px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
 
 /* ============================================================
    Newsletter strip
    ============================================================ */
 .newsletter-strip {
   background: linear-gradient(135deg, #131308 0%, #1a1a0a 100%);
-  border: 1px solid rgba(183,255,0,.2);
+  border: 1px solid rgba(158,230,0,.2);
   border-radius: var(--radius-xl);
   padding: 3rem 2rem;
   text-align: center;
@@ -765,10 +838,44 @@ p  { color: var(--text-secondary); }
 /* ============================================================
    Responsive utils
    ============================================================ */
+@media (max-width: 900px) {
+  .cart-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
   .section { padding: 3rem 0; }
+  .cart-item-row {
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .cart-item-img {
+    width: 68px;
+    height: 68px;
+    min-width: 68px;
+  }
 }
+
+@media (max-width: 480px) {
+  .cart-item-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0.75rem;
+  }
+  .cart-item-controls {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #222;
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
+
 @media (min-width: 769px) {
   .show-mobile-only { display: none !important; }
 }

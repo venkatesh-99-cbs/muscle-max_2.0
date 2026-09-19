@@ -3,10 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 
+const PRODUCT_ICONS = {
+  Protein: "🥛",
+  "Performance Supplements": "⚡",
+  "Health & Nutrition": "🌿",
+};
+
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [promo, setPromo] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [toast, setToast] = useState("");
@@ -17,282 +24,393 @@ export default function CartPage() {
   };
 
   const total = typeof totalPrice === "number" ? totalPrice : 0;
-  const shipping = total >= 999 ? 0 : 79;
+  const shippingThreshold = 999;
+  const isFreeShipping = total >= shippingThreshold;
+  const shipping = isFreeShipping ? 0 : 79;
   const discount = promoApplied ? Math.round(total * 0.1) : 0;
   const grandTotal = total - discount + shipping;
+  const progressToFreeShipping = Math.min(100, Math.round((total / shippingThreshold) * 100));
 
-  const PRODUCT_ICONS = { Protein: "🥛", "Performance Supplements": "⚡", "Health & Nutrition": "🌿" };
+  const handleApplyPromo = (e) => {
+    e.preventDefault();
+    if (!promo.trim()) return;
+    if (promo.trim().toUpperCase() === "MUSCLE10" || promo.trim().toUpperCase() === "MAX10") {
+      setPromoApplied(true);
+      showToast("✓ 10% discount applied!");
+    } else {
+      showToast("Invalid coupon code. Try MUSCLE10");
+    }
+  };
 
+  // ═══════════════════════════════════════════
+  // EMPTY CART STATE
+  // ═══════════════════════════════════════════
   if (!items || items.length === 0) {
     return (
-      <div
-        style={{
-          minHeight: "70vh",
-          background: "#0b0b0b",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          padding: "3rem 1.5rem",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ fontSize: "5rem", marginBottom: "1.5rem" }}>🛒</div>
-        <h2 style={{ color: "#fff", fontSize: "1.8rem", marginBottom: "0.75rem" }}>Your cart is empty</h2>
-        <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>Looks like you haven't added any products yet.</p>
-        <Link to="/products" className="btn btn-primary btn-lg">Browse Products →</Link>
+      <div style={{ minHeight: "80vh", background: "#0a0a0a", padding: "4rem 1.5rem" }}>
+        <div className="container" style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+          <div
+            style={{
+              background: "#141414",
+              border: "1px solid #262626",
+              borderRadius: "var(--radius-xl)",
+              padding: "3.5rem 2rem",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div
+              style={{
+                width: "5rem",
+                height: "5rem",
+                background: "rgba(158,230,0,0.08)",
+                border: "1px solid rgba(158,230,0,0.2)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "2.2rem",
+                margin: "0 auto 1.5rem",
+              }}
+            >
+              🛒
+            </div>
+            <h1 style={{ color: "#fff", fontSize: "1.75rem", fontWeight: 900, marginBottom: "0.5rem" }}>
+              YOUR CART IS EMPTY
+            </h1>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "2rem" }}>
+              Looks like you haven't added any supplements yet. Explore our high-performance proteins, creatines, and workout essentials.
+            </p>
+
+            <Link
+              to="/products"
+              className="btn btn-primary"
+              style={{ padding: "0.9rem 2.2rem", fontSize: "0.95rem", fontWeight: 800, textTransform: "uppercase" }}
+            >
+              Browse Catalog →
+            </Link>
+
+            {/* Guarantees */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+                gap: "1rem",
+                marginTop: "2.5rem",
+                paddingTop: "2rem",
+                borderTop: "1px solid #222",
+              }}
+            >
+              <div>
+                <span style={{ color: "var(--brand-primary)", fontSize: "1.2rem", display: "block" }}>⚡</span>
+                <span style={{ color: "#ccc", fontSize: "0.8rem", fontWeight: 600 }}>Fast Shipping</span>
+              </div>
+              <div>
+                <span style={{ color: "var(--brand-primary)", fontSize: "1.2rem", display: "block" }}>✓</span>
+                <span style={{ color: "#ccc", fontSize: "0.8rem", fontWeight: 600 }}>100% Authentic</span>
+              </div>
+              <div>
+                <span style={{ color: "var(--brand-primary)", fontSize: "1.2rem", display: "block" }}>🛡</span>
+                <span style={{ color: "#ccc", fontSize: "0.8rem", fontWeight: 600 }}>7-Day Returns</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // ═══════════════════════════════════════════
+  // POPULATED CART STATE
+  // ═══════════════════════════════════════════
   return (
-    <div style={{ minHeight: "80vh", background: "#0b0b0b", padding: "3rem 0 5rem" }}>
+    <div style={{ minHeight: "80vh", background: "#0a0a0a", padding: "3rem 0 5rem" }}>
       {toast && <div className="toast">{toast}</div>}
 
       <div className="container">
-        <div style={{ marginBottom: "2.5rem" }}>
-          <span className="section-label">Shopping</span>
-          <h1 style={{ color: "#fff", fontWeight: 900, fontSize: "2.2rem" }}>YOUR CART</h1>
-          <p style={{ color: "var(--text-muted)" }}>{items.length} item{items.length !== 1 ? "s" : ""} in your cart</p>
+        {/* Header */}
+        <div style={{ marginBottom: "2rem" }}>
+          <span className="section-label">Checkout Bag</span>
+          <h1 style={{ color: "#fff", fontWeight: 900, fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", marginTop: "0.25rem" }}>
+            YOUR CART ({items.reduce((s, i) => s + (i.quantity || 1), 0)})
+          </h1>
         </div>
 
+        {/* Free Shipping Progress Indicator */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 360px",
-            gap: "2rem",
-            alignItems: "start",
+            background: "#141414",
+            border: "1px solid #262626",
+            borderRadius: "var(--radius-lg)",
+            padding: "1rem 1.5rem",
+            marginBottom: "2rem",
           }}
         >
-          {/* Cart Items */}
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", marginBottom: "0.6rem" }}>
+            <span style={{ color: "#fff", fontWeight: 600 }}>
+              {isFreeShipping
+                ? "🎉 You've unlocked FREE Express Shipping!"
+                : `Add ₹${(shippingThreshold - total).toLocaleString("en-IN")} more to qualify for FREE Shipping`}
+            </span>
+            <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>
+              {isFreeShipping ? "FREE" : `₹${shipping}`}
+            </span>
+          </div>
+          <div style={{ height: "6px", background: "#222", borderRadius: "99px", overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${progressToFreeShipping}%`,
+                height: "100%",
+                background: "var(--gradient-brand)",
+                borderRadius: "99px",
+                transition: "width 0.3s ease",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Responsive Grid: Items Left, Summary Right */}
+        <div className="cart-layout-grid">
+          {/* Cart Item Rows */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {items.map((item) => {
-              const productName = item.product?.name || item.name || "Product";
+              const productName = item.product?.name || item.name || "MuscleMax Supplement";
               const productPrice = parseFloat(item.product?.price || item.price || 0);
               const productImage = item.product?.image || item.image;
-              const productCategory = item.product?.category?.name || item.category?.name || "";
+              const productCategory = item.product?.category?.name || item.category?.name || item.category || "Supplement";
               const icon = PRODUCT_ICONS[productCategory] || "⚡";
               const itemQty = item.quantity || 1;
+              const lineTotal = productPrice * itemQty;
+              const productId = item.product?.id || item.product_id || item.id;
 
               return (
                 <div key={item.id} className="cart-item-row">
-                  {/* Image */}
-                  <div className="cart-item-img">
+                  {/* Thumbnail */}
+                  <Link
+                    to={productId ? `/products/${productId}` : "#"}
+                    className="cart-item-img"
+                    style={{ textDecoration: "none" }}
+                  >
                     {productImage ? (
                       <img
                         src={productImage}
                         alt={productName}
-                        style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "var(--radius-md)" }}
-                        onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.parentNode.querySelector("span").style.display = "block"; }}
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
                       />
-                    ) : null}
-                    <span style={{ display: productImage ? "none" : "block", fontSize: "2rem" }}>{icon}</span>
-                  </div>
+                    ) : (
+                      <span style={{ fontSize: "2rem" }}>{icon}</span>
+                    )}
+                  </Link>
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.25rem" }}>
-                      {productCategory}
-                    </div>
-                    <div className="cart-item-name">{productName}</div>
-                    <div className="cart-item-price">₹{productPrice.toLocaleString("en-IN")}</div>
-                  </div>
-
-                  {/* Qty controls */}
-                  <div className="qty-stepper">
-                    <button
-                      className="qty-btn"
-                      onClick={() => {
-                        if (itemQty <= 1) removeItem(item.id);
-                        else updateQuantity(item.id, itemQty - 1);
+                    <span
+                      style={{
+                        display: "inline-block",
+                        fontSize: "0.7rem",
+                        color: "var(--brand-primary)",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        marginBottom: "0.2rem",
                       }}
-                    >−</button>
-                    <span className="qty-value">{itemQty}</span>
-                    <button
-                      className="qty-btn"
-                      onClick={() => updateQuantity(item.id, itemQty + 1)}
-                    >+</button>
-                  </div>
-
-                  {/* Line total */}
-                  <div style={{ minWidth: "80px", textAlign: "right" }}>
-                    <div style={{ fontWeight: 800, color: "var(--brand-primary)", fontSize: "1rem" }}>
-                      ₹{(productPrice * itemQty).toLocaleString("en-IN")}
+                    >
+                      {productCategory}
+                    </span>
+                    <Link
+                      to={productId ? `/products/${productId}` : "#"}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <h3 className="cart-item-name">{productName}</h3>
+                    </Link>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                      ₹{productPrice.toLocaleString("en-IN")} each
                     </div>
                   </div>
 
-                  {/* Remove */}
-                  <button
-                    onClick={() => { removeItem(item.id); showToast("Item removed from cart"); }}
-                    style={{
-                      background: "rgba(239,68,68,.1)",
-                      border: "1px solid rgba(239,68,68,.2)",
-                      borderRadius: "var(--radius-md)",
-                      color: "var(--danger)",
-                      padding: "0.4rem 0.65rem",
-                      cursor: "pointer",
-                      fontSize: "0.9rem",
-                      transition: "background var(--transition-fast)",
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239,68,68,.2)")}
-                    onMouseOut={(e) => (e.currentTarget.style.background = "rgba(239,68,68,.1)")}
-                    title="Remove item"
-                  >
-                    🗑️
-                  </button>
+                  {/* Controls / Stepper */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
+                    <div className="qty-stepper">
+                      <button
+                        className="qty-btn"
+                        onClick={() => {
+                          if (itemQty <= 1) {
+                            removeItem(item.id);
+                            showToast("Item removed");
+                          } else {
+                            updateQuantity(item.id, itemQty - 1);
+                          }
+                        }}
+                        title="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <span className="qty-value">{itemQty}</span>
+                      <button
+                        className="qty-btn"
+                        onClick={() => updateQuantity(item.id, itemQty + 1)}
+                        title="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div style={{ minWidth: "75px", textAlign: "right" }}>
+                      <div className="cart-item-price">
+                        ₹{lineTotal.toLocaleString("en-IN")}
+                      </div>
+                    </div>
+
+                    {/* Remove button */}
+                    <button
+                      onClick={() => {
+                        removeItem(item.id);
+                        showToast("Item removed from cart");
+                      }}
+                      title="Remove from cart"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#ff5555",
+                        cursor: "pointer",
+                        fontSize: "1.1rem",
+                        padding: "0.4rem",
+                        borderRadius: "var(--radius-sm)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               );
             })}
 
-            <div style={{ marginTop: "0.5rem" }}>
-              <Link to="/products" style={{ color: "var(--text-muted)", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.4rem" }}
-                onMouseOver={(e) => (e.currentTarget.style.color = "var(--brand-primary)")}
-                onMouseOut={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem" }}>
+              <Link
+                to="/products"
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "0.875rem",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                }}
               >
                 ← Continue Shopping
               </Link>
             </div>
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary Card */}
           <div
             style={{
-              background: "#171717",
-              border: "1px solid #292929",
+              background: "#141414",
+              border: "1px solid #262626",
               borderRadius: "var(--radius-xl)",
               padding: "1.75rem",
               position: "sticky",
-              top: "5rem",
+              top: "5.5rem",
             }}
           >
-            <h3 style={{ color: "#fff", fontWeight: 800, marginBottom: "1.5rem", fontSize: "1.1rem" }}>Order Summary</h3>
+            <h2 style={{ color: "#fff", fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.25rem" }}>
+              ORDER SUMMARY
+            </h2>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem", marginBottom: "1.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                <span>Subtotal ({items.length} items)</span>
-                <span>₹{total.toLocaleString("en-IN")}</span>
-              </div>
-              {promoApplied && (
-                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--success)", fontSize: "0.9rem" }}>
-                  <span>Promo Discount (10%)</span>
-                  <span>−₹{discount.toLocaleString("en-IN")}</span>
-                </div>
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                <span>Shipping</span>
-                <span style={{ color: shipping === 0 ? "var(--success)" : "var(--text-secondary)" }}>
-                  {shipping === 0 ? "FREE" : `₹${shipping}`}
-                </span>
-              </div>
-              {shipping > 0 && (
-                <p style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
-                  Add ₹{(999 - total).toLocaleString("en-IN")} more for free shipping
-                </p>
-              )}
-            </div>
-
-            {/* Promo Code */}
-            <div style={{ marginBottom: "1.5rem" }}>
-              <div
+            {/* Promo Form */}
+            <form onSubmit={handleApplyPromo} style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+              <input
+                type="text"
+                value={promo}
+                onChange={(e) => setPromo(e.target.value)}
+                placeholder="Coupon (e.g. MUSCLE10)"
                 style={{
-                  display: "flex",
-                  gap: "0.5rem",
+                  flex: 1,
+                  background: "#0d0d0d",
                   border: "1px solid #333",
                   borderRadius: "var(--radius-md)",
-                  overflow: "hidden",
+                  padding: "0.6rem 0.85rem",
+                  color: "#fff",
+                  fontSize: "0.85rem",
+                  outline: "none",
+                  textTransform: "uppercase",
                 }}
+              />
+              <button
+                type="submit"
+                className="btn btn-outline"
+                style={{ padding: "0.6rem 1rem", fontSize: "0.8rem", whiteSpace: "nowrap" }}
               >
-                <input
-                  type="text"
-                  placeholder="Promo code"
-                  value={promo}
-                  onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "none",
-                    padding: "0.65rem 0.9rem",
-                    color: "var(--text-primary)",
-                    fontSize: "0.875rem",
-                    outline: "none",
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    if (promo === "MUSCLEMAX10") {
-                      setPromoApplied(true);
-                      showToast("🎉 Promo code applied! 10% off");
-                    } else {
-                      showToast("Invalid promo code");
-                    }
-                  }}
-                  style={{
-                    background: "var(--brand-primary)",
-                    color: "#000",
-                    border: "none",
-                    padding: "0.65rem 1rem",
-                    fontWeight: 700,
-                    fontSize: "0.825rem",
-                    cursor: "pointer",
-                  }}
-                >
-                  Apply
-                </button>
+                Apply
+              </button>
+            </form>
+
+            {/* Calculations */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem", fontSize: "0.9rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
+                <span>Bag Subtotal</span>
+                <span style={{ color: "#fff", fontWeight: 600 }}>₹{total.toLocaleString("en-IN")}</span>
               </div>
-              <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "0.4rem" }}>
-                Try: <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>MUSCLEMAX10</span> for 10% off
-              </p>
+
+              {promoApplied && (
+                <div style={{ display: "flex", justifyContent: "space-between", color: "var(--brand-primary)" }}>
+                  <span>Promo Discount (10%)</span>
+                  <span style={{ fontWeight: 700 }}>-₹{discount.toLocaleString("en-IN")}</span>
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
+                <span>Standard Delivery</span>
+                <span style={{ color: isFreeShipping ? "var(--brand-primary)" : "#fff", fontWeight: 600 }}>
+                  {isFreeShipping ? "FREE" : `₹${shipping}`}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  height: "1px",
+                  background: "#262626",
+                  margin: "0.5rem 0",
+                }}
+              />
+
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.15rem", fontWeight: 900 }}>
+                <span style={{ color: "#fff" }}>Total</span>
+                <span style={{ color: "var(--brand-primary)" }}>₹{grandTotal.toLocaleString("en-IN")}</span>
+              </div>
             </div>
 
-            <div style={{ height: "1px", background: "#292929", marginBottom: "1.25rem" }} />
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <span style={{ fontWeight: 800, color: "#fff", fontSize: "1rem" }}>Grand Total</span>
-              <span style={{ fontWeight: 900, color: "var(--brand-primary)", fontSize: "1.5rem" }}>
-                ₹{grandTotal.toLocaleString("en-IN")}
-              </span>
-            </div>
-
+            {/* Checkout Button */}
             <button
-              className="btn btn-primary btn-full"
               onClick={() => {
-                if (!user) { navigate("/login"); return; }
-                navigate("/checkout");
+                if (!user) {
+                  navigate("/login?redirect=/checkout");
+                } else {
+                  navigate("/checkout");
+                }
               }}
-              style={{ fontSize: "1rem", padding: "1rem" }}
+              className="btn btn-primary btn-full"
+              style={{
+                marginTop: "1.5rem",
+                padding: "0.95rem",
+                fontSize: "0.95rem",
+                fontWeight: 800,
+                letterSpacing: "0.05em",
+                borderRadius: "var(--radius-md)",
+              }}
             >
-              Proceed to Checkout →
+              PROCEED TO CHECKOUT →
             </button>
 
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1.25rem", flexWrap: "wrap" }}>
-              {["UPI", "Card", "COD", "Netbanking"].map((m) => (
-                <span
-                  key={m}
-                  style={{
-                    fontSize: "0.7rem",
-                    color: "var(--text-muted)",
-                    background: "#1a1a1a",
-                    border: "1px solid #292929",
-                    borderRadius: "4px",
-                    padding: "0.2rem 0.5rem",
-                  }}
-                >
-                  {m}
-                </span>
-              ))}
+            <div style={{ textAlign: "center", marginTop: "1rem", color: "var(--text-muted)", fontSize: "0.75rem" }}>
+              🔒 256-Bit Encrypted & Secure Checkout
             </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          .cart-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 600px) {
-          .cart-item-row { flex-wrap: wrap; }
-        }
-      `}</style>
     </div>
   );
 }
